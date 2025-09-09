@@ -30,13 +30,13 @@ Your BottlePlug application consists of:
 2. **Run the setup script:**
    ```bash
    ssh root@YOUR_SERVER_IP
-   curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/bottleplug-monorepo/main/scripts/setup_digital_ocean.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/bottleplugdev-lgtm/bottleplug-monorepo/main/scripts/setup_digital_ocean.sh | bash
    ```
 
 3. **Clone your repository:**
    ```bash
    cd /opt/bottleplug
-   git clone https://github.com/YOUR_USERNAME/bottleplug-monorepo.git .
+   git clone https://github.com/bottleplugdev-lgtm/bottleplug-monorepo.git .
    ```
 
 4. **Configure environment:**
@@ -415,4 +415,4 @@ If you encounter issues:
 
 **Happy Deploying! 🚀**
 
-For more information, visit the [BottlePlug Documentation](https://github.com/YOUR_USERNAME/bottleplug-monorepo/wiki).
+For more information, visit the [BottlePlug Documentation](https://github.com/bottleplugdev-lgtm/bottleplug-monorepo/wiki).

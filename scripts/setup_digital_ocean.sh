@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 APP_DIR="/opt/bottleplug"
-REPO_URL="https://github.com/yourusername/bottleplug-monorepo.git"  # Update this with your actual repo
+REPO_URL="https://github.com/bottleplugdev-lgtm/bottleplug-monorepo.git"
 
 log() {
     echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
