@@ -1,0 +1,182 @@
+name: Deploy to Digital Ocean
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: |
+          web/package-lock.json
+          dashboard/package-lock.json
+    
+    - name: Install Python dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+    
+    - name: Install Frontend dependencies
+      run: |
+        cd web && npm ci
+        cd ../dashboard && npm ci
+    
+    - name: Run Python tests
+      run: |
+        cd backend
+        python manage.py test --verbosity=2
+    
+    - name: Run Frontend tests
+      run: |
+        cd web && npm test --if-present
+        cd ../dashboard && npm test --if-present
+    
+    - name: Build Frontend applications
+      run: |
+        cd web && npm run build
+        cd ../dashboard && npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Deploy to Digital Ocean
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT || 22 }}
+        script: |
+          set -e
+          
+          echo "🚀 Starting deployment to Digital Ocean..."
+          
+          # Navigate to application directory
+          cd /opt/bottleplug
+          
+          # Create deployment log
+          echo "$(date): Starting deployment" >> /opt/bottleplug/logs/deployment.log
+          
+          # Pull latest changes
+          echo "📥 Pulling latest changes from git..."
+          git fetch origin
+          git reset --hard origin/main
+          
+          # Create backup of current deployment
+          echo "💾 Creating backup..."
+          if [ -d "backup" ]; then
+            rm -rf backup/old_*
+            mv backup backup/old_$(date +%Y%m%d_%H%M%S) 2>/dev/null || true
+          fi
+          mkdir -p backup
+          
+          # Backup database
+          echo "🗄️ Backing up database..."
+          docker-compose -f docker-compose.prod.yml exec -T db pg_dump -U bottleplug bottleplug_prod > backup/db_backup_$(date +%Y%m%d_%H%M%S).sql || echo "Database backup failed, continuing..."
+          
+          # Stop current containers gracefully
+          echo "🛑 Stopping current containers..."
+          docker-compose -f docker-compose.prod.yml down --timeout 30
+          
+          # Build and start new containers
+          echo "🔨 Building and starting containers..."
+          docker-compose -f docker-compose.prod.yml build --no-cache --parallel
+          docker-compose -f docker-compose.prod.yml up -d
+          
+          # Wait for services to be healthy
+          echo "⏳ Waiting for services to start..."
+          sleep 45
+          
+          # Check if backend is healthy
+          echo "🔍 Checking backend health..."
+          for i in {1..10}; do
+            if docker-compose -f docker-compose.prod.yml exec -T backend curl -f http://localhost:8000/health/ > /dev/null 2>&1; then
+              echo "✅ Backend is healthy"
+              break
+            fi
+            echo "⏳ Waiting for backend to be ready... (attempt $i/10)"
+            sleep 10
+          done
+          
+          # Run database migrations
+          echo "🗄️ Running database migrations..."
+          docker-compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
+          
+          # Collect static files
+          echo "📁 Collecting static files..."
+          docker-compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+          
+          # Restart services to ensure everything is working
+          echo "🔄 Restarting services..."
+          docker-compose -f docker-compose.prod.yml restart
+          
+          # Clean up old images and containers
+          echo "🧹 Cleaning up old images..."
+          docker image prune -f
+          docker container prune -f
+          
+          # Check if everything is running
+          echo "✅ Checking deployment status..."
+          if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+            echo "🎉 Deployment completed successfully!"
+            echo "$(date): Deployment successful" >> /opt/bottleplug/logs/deployment.log
+            
+            # Test endpoints
+            echo "🧪 Testing endpoints..."
+            if curl -f http://localhost/health/ > /dev/null 2>&1; then
+              echo "✅ Health check passed"
+            else
+              echo "⚠️ Health check failed"
+            fi
+          else
+            echo "❌ Some containers are not running. Check logs:"
+            docker-compose -f docker-compose.prod.yml logs --tail=50
+            echo "$(date): Deployment failed" >> /opt/bottleplug/logs/deployment.log
+            exit 1
+          fi
+          
+          echo "📊 Deployment Summary:"
+          echo "- Containers: $(docker-compose -f docker-compose.prod.yml ps --services | wc -l) services"
+          echo "- Status: $(docker-compose -f docker-compose.prod.yml ps --format 'table {{.Name}}\t{{.Status}}')"
+          echo "- Logs: docker-compose -f docker-compose.prod.yml logs -f"
+
+  notify:
+    needs: [test, deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notify deployment status
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+      if: always() && secrets.SLACK_WEBHOOK != ''
+    
+    - name: Notify on failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed!"
+        echo "Check the GitHub Actions logs for details."

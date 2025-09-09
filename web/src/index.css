@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+
+/* Global whiskey background for all pages */
+body {
+  background: linear-gradient(135deg, #f8f4f0 0%, #f5f1eb 25%, #f2ede6 50%, #efe9e1 75%, #ece5dc 100%);
+  min-height: 100vh;
+}
+
+/* Utility classes implemented with plain CSS to avoid @apply issues */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  background: #DAA520; /* primary-500 */
+  color: #fff;
+  transition: background-color .2s ease;
+}
+.btn:hover { background: #c6951a; /* primary-600 */ }
+
+.card {
+  border-radius: 0.75rem;
+  border: 1px solid #e5e5e5; /* neutral-200 */
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+.badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: #f7e680;
+  color: #111827;
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #d4d4d4; /* neutral-300 */
+  padding: 0.5rem 0.75rem;
+}
+.input:focus {
+  outline: 2px solid #bae6fd; /* secondary-200 */
+  outline-offset: 2px;
+}
+
+/* accessible focus styles */
+:focus-visible { outline: 2px solid #f7e680; outline-offset: 2px; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #f7e680; outline-offset: 2px; }

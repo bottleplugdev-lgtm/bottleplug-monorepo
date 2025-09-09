@@ -1,0 +1,94 @@
+# Environment files
+.env
+.env.local
+.env.production
+.env.prod
+.env.development
+.env.test
+
+# Dependencies
+node_modules/
+*/node_modules/
+backend/venv/
+backend/env/
+backend/.venv/
+
+# Build outputs
+dist/
+build/
+*/dist/
+*/build/
+backend/staticfiles/
+backend/media/
+
+# Logs
+*.log
+logs/
+*/logs/
+
+# Database
+*.db
+*.sqlite3
+backend/db.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Backup files
+backup/
+*.backup
+*.bak
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Firebase credentials
+firebase-credentials.json
+*firebase*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Pytest
+.pytest_cache/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Redis
+dump.rdb
+
+# Temporary files
+tmp/
+temp/
+*.tmp

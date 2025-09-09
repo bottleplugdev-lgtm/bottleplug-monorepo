@@ -1,0 +1,146 @@
+services:
+  # PostgreSQL Database for Bottleplug Ecosystem
+  db:
+    image: postgres:15-alpine
+    container_name: bottleplug-db
+    environment:
+      POSTGRES_DB: bottleplug
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Celery and Caching
+  redis:
+    image: redis:7-alpine
+    container_name: bottleplug-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Bottleplug Django Backend API
+  backend:
+    build: ./backend
+    container_name: bottleplug-backend
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=bottleplug-secret-key-change-in-production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,ecommerce-web,dashboard
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8080,http://ecommerce-web,http://dashboard
+    volumes:
+      - ./backend:/app
+      - media_files:/app/media
+      - static_files:/app/staticfiles
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker for Background Tasks
+  celery:
+    build: ./backend
+    container_name: bottleplug-celery
+    command: celery -A tanna_backend worker -l info
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=bottleplug-secret-key-change-in-production
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  # Celery Beat (for scheduled tasks)
+  celery-beat:
+    build: ./backend
+    container_name: bottleplug-celery-beat
+    command: celery -A tanna_backend beat -l info
+    environment:
+      - DEBUG=True
+      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=bottleplug-secret-key-change-in-production
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - db
+      - redis
+      - backend
+
+  # Bottleplug E-commerce Web Application (Vue.js)
+  ecommerce-web:
+    build: ./web
+    container_name: bottleplug-ecommerce-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Bottleplug Admin Dashboard (Vue.js)
+  dashboard:
+    build: ./dashboard
+    container_name: bottleplug-dashboard
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: bottleplug-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@bottleplug.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  media_files:
+  static_files:
+  pgadmin_data:
+
+networks:
+  default:
+    name: bottleplug-network
