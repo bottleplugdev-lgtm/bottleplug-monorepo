@@ -165,6 +165,8 @@ jobs:
     needs: [test, deploy]
     runs-on: ubuntu-latest
     if: always()
+    env:
+      SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
     steps:
     - name: Notify deployment status
       uses: 8398a7/action-slack@v3
@@ -173,7 +175,7 @@ jobs:
         channel: '#deployments'
         webhook_url: ${{ secrets.SLACK_WEBHOOK }}
         fields: repo,message,commit,author,action,eventName,ref,workflow
-      if: always() && secrets.SLACK_WEBHOOK != ''
+      if: always() && env.SLACK_WEBHOOK != ''
     
     - name: Notify on failure
       if: failure()
