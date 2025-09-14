@@ -118,6 +118,10 @@ jobs:
           echo "⏳ Waiting for services to start..."
           sleep 45
           
+          # Create database if it doesn't exist
+          echo "🗄️ Creating database if it doesn't exist..."
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T db psql -U bottleplug -d postgres -c "CREATE DATABASE bottleplug;" 2>/dev/null || echo "Database already exists or creation failed, continuing..."
+          
           # Check if backend is healthy
           echo "🔍 Checking backend health..."
           for i in {1..10}; do
