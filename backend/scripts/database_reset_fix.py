@@ -76,10 +76,7 @@ from django.db import connection
 cursor = connection.cursor()
 
 # Get all table names
-cursor.execute("""
-    SELECT tablename FROM pg_tables 
-    WHERE schemaname = 'public'
-""")
+cursor.execute("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
 tables = cursor.fetchall()
 
 # Drop all tables
@@ -113,10 +110,7 @@ cursor.execute('DROP TABLE IF EXISTS django_migrations CASCADE')
 print("django_migrations table dropped")
 
 # Drop any remaining sequences
-cursor.execute("""
-    SELECT sequence_name FROM information_schema.sequences 
-    WHERE sequence_schema = 'public'
-""")
+cursor.execute("SELECT sequence_name FROM information_schema.sequences WHERE sequence_schema = 'public'")
 sequences = cursor.fetchall()
 
 for seq in sequences:
