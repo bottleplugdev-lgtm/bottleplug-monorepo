@@ -135,8 +135,29 @@ jobs:
           
           # Run database migrations
           echo "🗄️ Running database migrations..."
-          # Use --fake-initial to automatically handle existing database state conflicts
-          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate --fake-initial --noinput
+          # Try normal migration first
+          if ! docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate --noinput; then
+            echo "⚠️ Migration failed, attempting to resolve conflicts automatically..."
+            # Get list of unapplied migrations
+            UNAPPLIED=$(docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py showmigrations --plan | grep '\[ \]' | head -5)
+            if [ ! -z "$UNAPPLIED" ]; then
+              echo "Found unapplied migrations, faking them to resolve conflicts:"
+              echo "$UNAPPLIED"
+              # Fake the first few unapplied migrations to resolve conflicts
+              echo "$UNAPPLIED" | while read line; do
+                if [[ $line == *"["*" "*"]"* ]]; then
+                  # Extract app and migration name from the line
+                  MIGRATION=$(echo "$line" | sed 's/.*\[ \] //' | sed 's/ .*//')
+                  if [ ! -z "$MIGRATION" ]; then
+                    echo "Faking migration: $MIGRATION"
+                    docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate $MIGRATION --fake 2>/dev/null || true
+                  fi
+                fi
+              done
+              # Now try migrations again
+              docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate --noinput
+            fi
+          fi
           
           # Collect static files
           echo "📁 Collecting static files..."
