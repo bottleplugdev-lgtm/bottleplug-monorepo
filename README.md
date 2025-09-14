@@ -2,6 +2,8 @@
 
 A complete e-commerce platform built with Vue.js frontend, Django backend, and admin dashboard.
 
+<!-- Auto-deployment test - $(date) -->
+
 ## 🏗️ Architecture
 
 This is a monorepo containing:
