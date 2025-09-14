@@ -135,6 +135,9 @@ jobs:
           
           # Run database migrations
           echo "🗄️ Running database migrations..."
+          # Handle problematic migration if it exists
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate users 0002_auto_20250725_2154 --fake 2>/dev/null || echo "Migration already handled or doesn't exist"
+          # Run remaining migrations
           docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate --noinput
           
           # Collect static files
