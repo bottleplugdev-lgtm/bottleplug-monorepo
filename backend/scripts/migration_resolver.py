@@ -68,7 +68,15 @@ class MigrationResolver:
             return True
         else:
             print(f"⚠️ Failed to fake {migration_name}: {stderr}")
-            return False
+            # Try alternative approach - fake with --fake-initial
+            print(f"🔄 Trying alternative fake approach for {migration_name}")
+            exit_code2, stdout2, stderr2 = self.django_command("migrate", "--fake-initial", migration_name)
+            if exit_code2 == 0:
+                print(f"✅ Successfully faked with --fake-initial: {migration_name}")
+                return True
+            else:
+                print(f"❌ Both fake attempts failed for {migration_name}")
+                return False
     
     def try_migrate(self) -> tuple[bool, str]:
         """Try to run migrations, return success status and error message"""
@@ -147,6 +155,19 @@ class MigrationResolver:
             print(f"❌ Could not resolve conflicts after {attempt} attempts")
             print(f"Last error: {error}")
             break
+        
+        # Step 6: Last resort - fake ALL known problematic migrations aggressively
+        print("🚨 Last resort: Aggressively faking ALL known problematic migrations...")
+        for migration in self.known_conflicts:
+            print(f"🎭 Force faking: {migration}")
+            # Try multiple approaches
+            self.django_command("migrate", "--fake", migration)
+            self.django_command("migrate", "--fake-initial", migration)
+        
+        # Final attempt
+        success, error = self.try_migrate()
+        if success:
+            return True
         
         return False
     
