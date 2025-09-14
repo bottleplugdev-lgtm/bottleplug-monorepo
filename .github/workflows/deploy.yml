@@ -103,7 +103,7 @@ jobs:
           
           # Backup database
           echo "🗄️ Backing up database..."
-          docker-compose -f docker-compose.prod.yml exec -T db pg_dump -U bottleplug bottleplug_prod > backup/db_backup_$(date +%Y%m%d_%H%M%S).sql || echo "Database backup failed, continuing..."
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T db pg_dump -U bottleplug bottleplug > backup/db_backup_$(date +%Y%m%d_%H%M%S).sql || echo "Database backup failed, continuing..."
           
           # Stop current containers gracefully
           echo "🛑 Stopping current containers..."
@@ -121,7 +121,7 @@ jobs:
           # Check if backend is healthy
           echo "🔍 Checking backend health..."
           for i in {1..10}; do
-            if docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend curl -f http://localhost:8000/health/ > /dev/null 2>&1; then
+            if docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend curl -f http://localhost:8000/api/health/ > /dev/null 2>&1; then
               echo "✅ Backend is healthy"
               break
             fi
@@ -154,7 +154,7 @@ jobs:
             
             # Test endpoints
             echo "🧪 Testing endpoints..."
-            if curl -f http://localhost/health/ > /dev/null 2>&1; then
+            if curl -f http://localhost/api/health/ > /dev/null 2>&1; then
               echo "✅ Health check passed"
             else
               echo "⚠️ Health check failed"
