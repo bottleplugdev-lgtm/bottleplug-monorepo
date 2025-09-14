@@ -133,9 +133,9 @@ jobs:
             sleep 10
           done
           
-                 # Run database migrations using robust migration fix
-                 echo "🗄️ Running database migrations with robust migration fix..."
-                 docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python scripts/robust_migration_fix.py
+                 # Run database migrations using intelligent migration fix
+                 echo "🗄️ Running database migrations with intelligent migration fix..."
+                 docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python scripts/intelligent_migration_fix.py
           
           # Collect static files
           echo "📁 Collecting static files..."
