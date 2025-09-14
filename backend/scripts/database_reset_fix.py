@@ -133,22 +133,24 @@ print("All sequences dropped")
         """Run initial migrations to set up the database from scratch"""
         print("🏗️ Running initial migrations from scratch...")
         
-        # First, run migrate to create the django_migrations table
-        exit_code, stdout, stderr = self.django_command("migrate", "--run-syncdb")
-        
-        if exit_code != 0:
-            print(f"❌ Failed to run syncdb: {stderr}")
-            return False
-        
-        # Then run all migrations
-        exit_code, stdout, stderr = self.django_command("migrate", "--noinput")
+        # Use --fake-initial to handle existing schema
+        exit_code, stdout, stderr = self.django_command("migrate", "--fake-initial", "--noinput")
         
         if exit_code == 0:
-            print("✅ All migrations completed successfully")
-            return True
+            print("✅ Fake-initial migrations completed successfully")
         else:
-            print(f"❌ Migrations failed: {stderr}")
-            return False
+            print(f"⚠️ Fake-initial migrations failed: {stderr}")
+            # Try normal migrations as fallback
+            print("🔄 Trying normal migrations as fallback...")
+            exit_code, stdout, stderr = self.django_command("migrate", "--noinput")
+            
+            if exit_code == 0:
+                print("✅ Normal migrations completed successfully")
+            else:
+                print(f"❌ Normal migrations also failed: {stderr}")
+                return False
+        
+        return True
     
     def create_superuser(self) -> bool:
         """Create a superuser"""

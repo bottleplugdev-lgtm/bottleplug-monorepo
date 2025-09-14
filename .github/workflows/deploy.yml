@@ -133,9 +133,9 @@ jobs:
             sleep 10
           done
           
-                 # Run database migrations using database reset fix
-                 echo "🗄️ Running database migrations with database reset fix..."
-                 docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python scripts/database_reset_fix.py
+                 # Run database migrations using aggressive database reset
+                 echo "🗄️ Running database migrations with aggressive database reset..."
+                 docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python scripts/aggressive_database_reset.py
           
           # Collect static files
           echo "📁 Collecting static files..."
