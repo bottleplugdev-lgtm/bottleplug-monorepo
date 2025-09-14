@@ -97,12 +97,12 @@ jobs:
           
           # Stop current containers gracefully
           echo "🛑 Stopping current containers..."
-          docker-compose -f docker-compose.prod.yml down --timeout 30
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod down --timeout 30
           
           # Build and start new containers
           echo "🔨 Building and starting containers..."
-          docker-compose -f docker-compose.prod.yml build --no-cache --parallel
-          docker-compose -f docker-compose.prod.yml up -d
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod build --no-cache --parallel
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
           
           # Wait for services to be healthy
           echo "⏳ Waiting for services to start..."
@@ -111,7 +111,7 @@ jobs:
           # Check if backend is healthy
           echo "🔍 Checking backend health..."
           for i in {1..10}; do
-            if docker-compose -f docker-compose.prod.yml exec -T backend curl -f http://localhost:8000/health/ > /dev/null 2>&1; then
+            if docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend curl -f http://localhost:8000/health/ > /dev/null 2>&1; then
               echo "✅ Backend is healthy"
               break
             fi
@@ -121,15 +121,15 @@ jobs:
           
           # Run database migrations
           echo "🗄️ Running database migrations..."
-          docker-compose -f docker-compose.prod.yml exec -T backend python manage.py migrate --noinput
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py migrate --noinput
           
           # Collect static files
           echo "📁 Collecting static files..."
-          docker-compose -f docker-compose.prod.yml exec -T backend python manage.py collectstatic --noinput
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py collectstatic --noinput
           
           # Restart services to ensure everything is working
           echo "🔄 Restarting services..."
-          docker-compose -f docker-compose.prod.yml restart
+          docker-compose -f docker-compose.prod.yml --env-file .env.prod restart
           
           # Clean up old images and containers
           echo "🧹 Cleaning up old images..."
@@ -138,7 +138,7 @@ jobs:
           
           # Check if everything is running
           echo "✅ Checking deployment status..."
-          if docker-compose -f docker-compose.prod.yml ps | grep -q "Up"; then
+          if docker-compose -f docker-compose.prod.yml --env-file .env.prod ps | grep -q "Up"; then
             echo "🎉 Deployment completed successfully!"
             echo "$(date): Deployment successful" >> /opt/bottleplug/logs/deployment.log
             
@@ -151,15 +151,15 @@ jobs:
             fi
           else
             echo "❌ Some containers are not running. Check logs:"
-            docker-compose -f docker-compose.prod.yml logs --tail=50
+            docker-compose -f docker-compose.prod.yml --env-file .env.prod logs --tail=50
             echo "$(date): Deployment failed" >> /opt/bottleplug/logs/deployment.log
             exit 1
           fi
           
           echo "📊 Deployment Summary:"
-          echo "- Containers: $(docker-compose -f docker-compose.prod.yml ps --services | wc -l) services"
-          echo "- Status: $(docker-compose -f docker-compose.prod.yml ps --format 'table {{.Name}}\t{{.Status}}')"
-          echo "- Logs: docker-compose -f docker-compose.prod.yml logs -f"
+          echo "- Containers: $(docker-compose -f docker-compose.prod.yml --env-file .env.prod ps --services | wc -l) services"
+          echo "- Status: $(docker-compose -f docker-compose.prod.yml --env-file .env.prod ps --format 'table {{.Name}}\t{{.Status}}')"
+          echo "- Logs: docker-compose -f docker-compose.prod.yml --env-file .env.prod logs -f"
 
   notify:
     needs: [test, deploy]
