@@ -4,11 +4,11 @@
 This guide will help you set up your domains and get your BottlePlug application running with custom domains instead of IP addresses.
 
 ## 🎯 Your Domains
-- **Main Website**: `bottleplug.com`
-- **Admin Dashboard**: `admin.bottleplug.com`
-- **Backend API**: `api.bottleplug.com`
-- **API Documentation**: `docs.bottleplug.com`
-- **Database Admin**: `db.bottleplug.com`
+- **Main Website**: `bottleplugug.com`
+- **Admin Dashboard**: `admin.bottleplugug.com`
+- **Backend API**: `api.bottleplugug.com`
+- **API Documentation**: `docs.bottleplugug.com`
+- **Database Admin**: `db.bottleplugug.com`
 
 ## 🔧 Step 1: Configure DNS Records
 
@@ -17,7 +17,7 @@ Add these DNS records (A records) pointing to your Digital Ocean IP:
 
 ```
 Type: A Record
-Name: @ (or bottleplug.com)
+Name: @ (or bottleplugug.com)
 Value: 146.190.126.50
 TTL: 300 (5 minutes)
 
@@ -94,17 +94,17 @@ docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
 
 ### Test DNS Resolution:
 ```bash
-nslookup bottleplug.com
-nslookup admin.bottleplug.com
-nslookup api.bottleplug.com
+nslookup bottleplugug.com
+nslookup admin.bottleplugug.com
+nslookup api.bottleplugug.com
 ```
 
 ### Test Website Access:
-- **Main Website**: https://bottleplug.com
-- **Admin Dashboard**: https://admin.bottleplug.com
-- **Backend API**: https://api.bottleplug.com
-- **API Documentation**: https://docs.bottleplug.com
-- **Database Admin**: https://db.bottleplug.com
+- **Main Website**: https://bottleplugug.com
+- **Admin Dashboard**: https://admin.bottleplugug.com
+- **Backend API**: https://api.bottleplugug.com
+- **API Documentation**: https://docs.bottleplugug.com
+- **Database Admin**: https://db.bottleplugug.com
 
 ## 🔍 Troubleshooting
 
@@ -112,7 +112,7 @@ nslookup api.bottleplug.com
 
 1. **Check DNS propagation**:
    ```bash
-   nslookup bottleplug.com
+   nslookup bottleplugug.com
    ```
 
 2. **Check if containers are running**:
@@ -132,7 +132,7 @@ nslookup api.bottleplug.com
 
 5. **Test with curl**:
    ```bash
-   curl -I https://bottleplug.com
+   curl -I https://bottleplugug.com
    ```
 
 ### Common Issues:
@@ -163,8 +163,8 @@ const API_BASE_URL = 'https://api.bottleplug.com';
 ## 📊 Monitoring
 
 ### Health Check Endpoints:
-- **API Health**: https://api.bottleplug.com/api/health/
-- **Main Site**: https://bottleplug.com/api/health/
+- **API Health**: https://api.bottleplugug.com/api/health/
+- **Main Site**: https://bottleplugug.com/api/health/
 
 ### Logs:
 ```bash

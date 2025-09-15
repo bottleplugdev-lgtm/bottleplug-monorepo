@@ -20,11 +20,11 @@ mkdir -p /opt/bottleplug/ssl
 # Generate self-signed certificates for initial setup
 echo "🔧 Generating self-signed certificates for initial setup..."
 
-# Create self-signed certificate for bottleplug.com
+# Create self-signed certificate for bottleplugug.com
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /opt/bottleplug/ssl/key.pem \
     -out /opt/bottleplug/ssl/cert.pem \
-    -subj "/C=US/ST=State/L=City/O=Organization/CN=bottleplug.com"
+    -subj "/C=US/ST=State/L=City/O=Organization/CN=bottleplugug.com"
 
 echo "✅ Self-signed certificates generated successfully!"
 
@@ -37,19 +37,19 @@ setup_letsencrypt() {
     
     # Get certificates for all domains
     certbot certonly --standalone \
-        --email admin@bottleplug.com \
+        --email admin@bottleplugug.com \
         --agree-tos \
         --no-eff-email \
-        -d bottleplug.com \
-        -d www.bottleplug.com \
-        -d admin.bottleplug.com \
-        -d api.bottleplug.com \
-        -d docs.bottleplug.com \
-        -d db.bottleplug.com
+        -d bottleplugug.com \
+        -d www.bottleplugug.com \
+        -d admin.bottleplugug.com \
+        -d api.bottleplugug.com \
+        -d docs.bottleplugug.com \
+        -d db.bottleplugug.com
     
     # Copy certificates to our SSL directory
-    cp /etc/letsencrypt/live/bottleplug.com/fullchain.pem /opt/bottleplug/ssl/cert.pem
-    cp /etc/letsencrypt/live/bottleplug.com/privkey.pem /opt/bottleplug/ssl/key.pem
+    cp /etc/letsencrypt/live/bottleplugug.com/fullchain.pem /opt/bottleplug/ssl/cert.pem
+    cp /etc/letsencrypt/live/bottleplugug.com/privkey.pem /opt/bottleplug/ssl/key.pem
     
     # Set proper permissions
     chmod 600 /opt/bottleplug/ssl/key.pem
@@ -71,8 +71,8 @@ setup_auto_renewal() {
 cd /opt/bottleplug
 certbot renew --quiet
 if [ $? -eq 0 ]; then
-    cp /etc/letsencrypt/live/bottleplug.com/fullchain.pem /opt/bottleplug/ssl/cert.pem
-    cp /etc/letsencrypt/live/bottleplug.com/privkey.pem /opt/bottleplug/ssl/key.pem
+    cp /etc/letsencrypt/live/bottleplugug.com/fullchain.pem /opt/bottleplug/ssl/cert.pem
+    cp /etc/letsencrypt/live/bottleplugug.com/privkey.pem /opt/bottleplug/ssl/key.pem
     docker-compose -f docker-compose.prod.yml --env-file .env.prod restart nginx
     echo "$(date): Certificates renewed successfully" >> /opt/bottleplug/ssl/renewal.log
 fi
@@ -108,8 +108,8 @@ echo "2. Test the domains once DNS propagates"
 echo "3. Run './scripts/setup_ssl_certificates.sh --letsencrypt' for production certificates"
 echo ""
 echo "🌐 Your domains will be available at:"
-echo "   - https://bottleplug.com (Main Website)"
-echo "   - https://admin.bottleplug.com (Admin Dashboard)"
-echo "   - https://api.bottleplug.com (Backend API)"
-echo "   - https://docs.bottleplug.com (API Documentation)"
-echo "   - https://db.bottleplug.com (Database Admin)"
+echo "   - https://bottleplugug.com (Main Website)"
+echo "   - https://admin.bottleplugug.com (Admin Dashboard)"
+echo "   - https://api.bottleplugug.com (Backend API)"
+echo "   - https://docs.bottleplugug.com (API Documentation)"
+echo "   - https://db.bottleplugug.com (Database Admin)"
