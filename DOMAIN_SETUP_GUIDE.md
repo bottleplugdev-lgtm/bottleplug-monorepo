@@ -103,8 +103,13 @@ nslookup api.bottleplugug.com
 - **Main Website**: https://bottleplugug.com
 - **Admin Dashboard**: https://admin.bottleplugug.com
 - **Backend API**: https://api.bottleplugug.com
-- **API Documentation**: https://docs.bottleplugug.com
+- **API Documentation**: https://docs.bottleplugug.com (redirects to Swagger)
 - **Database Admin**: https://db.bottleplugug.com
+
+### API Documentation Endpoints:
+- **Swagger UI**: https://api.bottleplugug.com/swagger/ or https://docs.bottleplugug.com/swagger/
+- **ReDoc**: https://api.bottleplugug.com/redoc/ or https://docs.bottleplugug.com/redoc/
+- **Django Admin**: https://api.bottleplugug.com/admin/ or https://docs.bottleplugug.com/admin/
 
 ## 🔍 Troubleshooting
 
@@ -165,6 +170,15 @@ const API_BASE_URL = 'https://api.bottleplug.com';
 ### Health Check Endpoints:
 - **API Health**: https://api.bottleplugug.com/api/health/
 - **Main Site**: https://bottleplugug.com/api/health/
+
+### API Endpoints Available:
+- **Authentication**: https://api.bottleplugug.com/api/v1/auth/
+- **Products**: https://api.bottleplugug.com/api/v1/products/
+- **Orders**: https://api.bottleplugug.com/api/v1/orders/
+- **Payments**: https://api.bottleplugug.com/api/v1/payments/
+- **Analytics**: https://api.bottleplugug.com/api/v1/analytics/
+- **Events**: https://api.bottleplugug.com/api/v1/events/
+- **Mobile API**: https://api.bottleplugug.com/api/v1/mobile/
 
 ### Logs:
 ```bash
