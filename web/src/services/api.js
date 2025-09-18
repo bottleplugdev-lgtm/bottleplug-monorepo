@@ -5,8 +5,8 @@ import { toast_error } from '../lib/toast'
 function resolve_api_base_url() {
 	const envUrl = import.meta.env.VITE_API_BASE_URL
 	if (envUrl) return envUrl.replace(/\/$/, '')
-	// Default to same-origin Nginx proxy path
-	return '/api/v1'
+	// Default to live API endpoint
+	return 'https://api.bottleplugug.com/api/v1'
 }
 
 export const API_BASE_URL = resolve_api_base_url()

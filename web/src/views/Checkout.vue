@@ -262,7 +262,7 @@ function image_url(image_path) {
 		return image_path
 	}
 	
-	const backend_url = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+	const backend_url = import.meta.env.VITE_API_BASE_URL || 'https://api.bottleplugug.com'
 	const clean_path = image_path.replace(/^\/?media\//, '')
 	const final_url = `${backend_url}/media/${clean_path}`
 	console.log('🖼️ Constructed checkout image URL:', final_url)

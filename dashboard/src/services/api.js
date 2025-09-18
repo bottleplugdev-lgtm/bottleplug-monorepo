@@ -3,7 +3,7 @@ import { auth } from '@/firebase/config'
 // Resolve API base URL robustly across envs
 const resolveApiBaseUrl = () => {
   let base = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || ''
-  const defaultBase = 'http://localhost:8000/api/v1'
+  const defaultBase = 'https://api.bottleplugug.com/api/v1'
   try {
     if (!base) return defaultBase
     // Trim whitespace

@@ -1,0 +1,272 @@
+[
+{
+  "model": "products.category",
+  "pk": 1,
+  "fields": {
+    "name": "Red Wine",
+    "description": "Rich and full-bodied red wines.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 0,
+    "created_at": "2025-09-18T21:16:05.504Z",
+    "updated_at": "2025-09-18T21:16:05.504Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 2,
+  "fields": {
+    "name": "White Wine",
+    "description": "Crisp and refreshing white wines.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 1,
+    "created_at": "2025-09-18T21:16:05.516Z",
+    "updated_at": "2025-09-18T21:16:05.516Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 3,
+  "fields": {
+    "name": "Champagne",
+    "description": "Sparkling wines from Champagne and beyond.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 2,
+    "created_at": "2025-09-18T21:16:05.517Z",
+    "updated_at": "2025-09-18T21:16:05.517Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 4,
+  "fields": {
+    "name": "Whisky",
+    "description": "Aged whiskies from around the world.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 3,
+    "created_at": "2025-09-18T21:16:05.518Z",
+    "updated_at": "2025-09-18T21:16:05.518Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 5,
+  "fields": {
+    "name": "Vodka",
+    "description": "Premium and flavored vodkas.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 4,
+    "created_at": "2025-09-18T21:16:05.519Z",
+    "updated_at": "2025-09-18T21:16:05.519Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 6,
+  "fields": {
+    "name": "Gin",
+    "description": "Classic and contemporary gins.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 5,
+    "created_at": "2025-09-18T21:16:05.520Z",
+    "updated_at": "2025-09-18T21:16:05.520Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 7,
+  "fields": {
+    "name": "Rum",
+    "description": "Light, dark, and spiced rums.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 6,
+    "created_at": "2025-09-18T21:16:05.521Z",
+    "updated_at": "2025-09-18T21:16:05.521Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 8,
+  "fields": {
+    "name": "Rosé",
+    "description": "Elegant and vibrant rosé wines.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 7,
+    "created_at": "2025-09-18T21:16:05.522Z",
+    "updated_at": "2025-09-18T21:16:05.522Z"
+  }
+},
+{
+  "model": "products.category",
+  "pk": 9,
+  "fields": {
+    "name": "Beer",
+    "description": "Craft and classic beers.",
+    "image": "",
+    "parent": null,
+    "is_active": true,
+    "sort_order": 8,
+    "created_at": "2025-09-18T21:16:05.523Z",
+    "updated_at": "2025-09-18T21:16:05.523Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 1,
+  "fields": {
+    "name": "Château Margaux 2015",
+    "description": null,
+    "category": 1,
+    "subcategory": null,
+    "sku": "CHM-2015-750",
+    "status": "active",
+    "price": "1299.00",
+    "original_price": "1529.00",
+    "sale_percentage": null,
+    "unit": null,
+    "stock": 5,
+    "min_stock_level": 10,
+    "max_stock_level": 1000,
+    "vintage": null,
+    "region": null,
+    "alcohol_percentage": null,
+    "volume": null,
+    "image": "products/photo-1510812431401-41d2bd2722f3",
+    "images": [],
+    "is_featured": true,
+    "is_new": false,
+    "is_on_sale": true,
+    "average_rating": "4.90",
+    "review_count": 0,
+    "tags": [],
+    "pairings": [],
+    "awards": [],
+    "bulk_pricing": {},
+    "created_at": "2025-09-18T21:16:10.257Z",
+    "updated_at": "2025-09-18T21:16:11.009Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 2,
+  "fields": {
+    "name": "Dom Pérignon 2012",
+    "description": null,
+    "category": 3,
+    "subcategory": null,
+    "sku": "DP-2012-750",
+    "status": "active",
+    "price": "399.00",
+    "original_price": null,
+    "sale_percentage": null,
+    "unit": null,
+    "stock": 12,
+    "min_stock_level": 10,
+    "max_stock_level": 1000,
+    "vintage": null,
+    "region": null,
+    "alcohol_percentage": null,
+    "volume": null,
+    "image": "products/photo-1547595628-c61a29f496f0",
+    "images": [],
+    "is_featured": true,
+    "is_new": false,
+    "is_on_sale": false,
+    "average_rating": "4.80",
+    "review_count": 0,
+    "tags": [],
+    "pairings": [],
+    "awards": [],
+    "bulk_pricing": {},
+    "created_at": "2025-09-18T21:16:11.024Z",
+    "updated_at": "2025-09-18T21:16:12.677Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 3,
+  "fields": {
+    "name": "Macallan 25 Year",
+    "description": null,
+    "category": 4,
+    "subcategory": null,
+    "sku": "MAC-25YO-750",
+    "status": "active",
+    "price": "2499.00",
+    "original_price": null,
+    "sale_percentage": null,
+    "unit": null,
+    "stock": 3,
+    "min_stock_level": 10,
+    "max_stock_level": 1000,
+    "vintage": null,
+    "region": null,
+    "alcohol_percentage": null,
+    "volume": null,
+    "image": "products/photo-1527281400683-1aae777175f8",
+    "images": [],
+    "is_featured": true,
+    "is_new": false,
+    "is_on_sale": false,
+    "average_rating": "4.90",
+    "review_count": 0,
+    "tags": [],
+    "pairings": [],
+    "awards": [],
+    "bulk_pricing": {},
+    "created_at": "2025-09-18T21:16:12.683Z",
+    "updated_at": "2025-09-18T21:16:13.854Z"
+  }
+},
+{
+  "model": "products.product",
+  "pk": 4,
+  "fields": {
+    "name": "Opus One 2018",
+    "description": null,
+    "category": 1,
+    "subcategory": null,
+    "sku": "OPUS-2018-750",
+    "status": "active",
+    "price": "549.00",
+    "original_price": "609.00",
+    "sale_percentage": null,
+    "unit": null,
+    "stock": 8,
+    "min_stock_level": 10,
+    "max_stock_level": 1000,
+    "vintage": null,
+    "region": null,
+    "alcohol_percentage": null,
+    "volume": null,
+    "image": "",
+    "images": [],
+    "is_featured": true,
+    "is_new": true,
+    "is_on_sale": true,
+    "average_rating": "4.70",
+    "review_count": 0,
+    "tags": [],
+    "pairings": [],
+    "awards": [],
+    "bulk_pricing": {},
+    "created_at": "2025-09-18T21:16:13.859Z",
+    "updated_at": "2025-09-18T21:16:13.859Z"
+  }
+}
+]

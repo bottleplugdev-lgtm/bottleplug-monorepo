@@ -7,7 +7,7 @@ class WebSocketService {
   }
 
   connect(token) {
-    const wsUrl = `ws://localhost:8000/ws/notifications/?token=${token}`;
+    const wsUrl = `wss://api.bottleplugug.com/ws/notifications/?token=${token}`;
     
     this.socket = new WebSocket(wsUrl);
     

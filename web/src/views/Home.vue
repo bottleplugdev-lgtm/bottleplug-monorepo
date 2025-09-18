@@ -150,7 +150,7 @@
                                                         :alt="category.name" 
                                                         loading="lazy"
                                                         class="category_img"
-                                                        @error="$event.target.src = 'http://localhost:8000/media/bottleplug_logo.png'"
+                                                        @error="$event.target.src = get_fallback_image_url()"
                                                 />
 						<!-- <div class="category_overlay">
 							<div class="category_icon">🍷</div>
@@ -408,6 +408,7 @@ import { analytics } from '../services/analytics'
 import { require_auth_for_action } from '../utils/auth_guard'
 import { toast_success, toast_error } from '../lib/toast'
 import { use_auth_store } from '../stores/auth'
+import { image_url, category_image_url, get_fallback_image_url } from '../utils/image_utils'
 
 const store = use_products_store()
 const cart = use_cart_store()
@@ -448,7 +449,7 @@ onMounted(async () => {
 	set_seo({ 
 		title: 'BottlePlug · Premium Wines & Fine Spirits', 
 		description: 'Discover curated wines and premium spirits from around the world. Expert curation, competitive pricing, and secure delivery.',
-		                image: 'http://localhost:8000/media/bottleplug_logo.png' 
+		                image: get_fallback_image_url() 
 	})
 	
 	// Track page view
@@ -544,53 +545,7 @@ const hero_price = computed(() => Number(hero_product.value?.price || 1299))
 const old_price = computed(() => Number(hero_product.value?.original_price || hero_product.value?.compare_at_price || 1599))
 const save_amount = computed(() => Math.max(0, Number(old_price.value || 0) - Number(hero_price.value || 0)))
 
-function image_url(path) {
-        if (!path) return 'http://localhost:8000/media/bottleplug_logo.png'
-	if (/^https?:/.test(path)) return path
-
-        // Build full URL from relative path
-        // The backend returns relative paths like 'products/image.jpg' or 'media/products/image.jpg'
-        // We need to construct the full URL using the backend URL directly
-        const backend_url = 'http://localhost:8000'
-
-        // Remove any leading 'media/' from the path to avoid duplication
-        const clean_path = path.replace(/^\/?media\//, '')
-        const media_url = `${backend_url}/media/${clean_path}`
-        
-        return media_url
-}
-
-function category_image_url(category) {
-
-        // If category has an image path, use it
-        if (category.image) {
-			var image_pic = image_url(category.image.replace('localhost', 'localhost:8000'))
-			console.log('Category image:', image_pic)
-                return image_pic
-        }
-        
-        // Otherwise, map category name to image file
-        // const category_image_map = {
-        //         'gin': 'gin.jpeg',
-        //         'vodka': 'vodka.jpeg',
-        //         'rum': 'rum.jpeg',
-        //         'beer': 'beer.jpeg',
-        //         'wine': 'wine.jpeg',
-        //         'whisky': 'wisky.jpeg',
-        //         'champagne': 'champaign.jpeg',
-        //         'red wine': 'redwi.jpeg',
-        //         'white wine': 'white.jpeg',
-        //         'rose wine': 'rose.jpeg'
-        // }
-        
-        const image_file = category_image_map[category.name.toLowerCase()]
-        if (image_file) {
-                return image_file
-        }
-        
-        // Fallback to logo
-        return 'http://localhost:8000/media/bottleplug_logo.png'
-}
+// Image URL functions are now imported from utils/image_utils.js
 
 function format_price(value) {
 	const amount = Number(value) || 0

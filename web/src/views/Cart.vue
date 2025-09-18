@@ -155,6 +155,7 @@ import { use_cart_store } from '../stores/cart'
 import OrderSummary from '../components/OrderSummary.vue'
 import { set_seo } from '../lib/seo'
 import { toast_success, toast_error } from '../lib/toast'
+import { image_url, get_fallback_image_url } from '../utils/image_utils'
 
 const cart = use_cart_store()
 const items = computed(() => cart.items)
@@ -205,31 +206,12 @@ function format_amount(value) {
 	return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(amount)
 }
 
-function image_url(path) {
-	console.log('🖼️ Cart image_url called with path:', path)
-	
-	if (!path) {
-		console.log('🖼️ No path provided, using logo fallback')
-		return 'http://localhost:8000/media/bottleplug_logo.png'
-	}
-	
-	if (/^https?:/.test(path)) {
-		console.log('🖼️ Full URL detected, fixing localhost port')
-		path = path.replace('localhost', 'localhost:8000')
-		return path
-	}
-	
-	const backend_url = 'http://localhost:8000'
-	const clean_path = path.replace(/^\/?media\//, '')
-	const final_url = `${backend_url}/media/${clean_path}`
-	console.log('🖼️ Constructed image URL:', final_url)
-	return final_url
-}
+// Image URL function is now imported from utils/image_utils.js
 
 function handle_image_error(event) {
 	console.log('❌ Cart image failed to load:', event.target.src)
 	console.log('🔄 Switching to logo fallback')
-	event.target.src = 'http://localhost:8000/media/bottleplug_logo.png'
+	event.target.src = get_fallback_image_url()
 }
 
 async function update(item, qty) {

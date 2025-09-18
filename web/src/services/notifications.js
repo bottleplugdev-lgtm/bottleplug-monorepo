@@ -244,7 +244,7 @@ class NotificationService {
 	// Initialize WebSocket for real-time notifications
 	async init_websocket() {
 		try {
-			const ws_url = process.env.VITE_WS_URL || 'ws://localhost:8000/ws/notifications/'
+			const ws_url = process.env.VITE_WS_URL || 'wss://api.bottleplugug.com/ws/notifications/'
 			this.websocket = new WebSocket(ws_url)
 			
 			this.websocket.onopen = () => {
