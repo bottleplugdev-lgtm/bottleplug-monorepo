@@ -122,7 +122,17 @@ export const use_auth_store = defineStore('auth_store', {
 		async sync_backend_user() {
 			// Firebase authentication is handled automatically by the backend
 			// when the Firebase token is included in the Authorization header
-			// No need for a separate verification endpoint
+			// Store the token for API calls
+			try {
+				const auth = get_auth()
+				if (auth.currentUser && !auth.currentUser.isAnonymous) {
+					const token = await auth.currentUser.getIdToken()
+					localStorage.setItem('firebase_id_token', token)
+					console.log('Firebase token stored for API calls')
+				}
+			} catch (error) {
+				console.error('Failed to store Firebase token:', error)
+			}
 			console.log('User authenticated via Firebase - backend will validate token automatically')
 			return true
 		},
@@ -201,6 +211,21 @@ export const use_auth_store = defineStore('auth_store', {
 			
 			// Go back to anonymous auth
 			await ensure_anonymous_auth()
+		},
+		
+		async refresh_firebase_token() {
+			try {
+				const auth = get_auth()
+				if (auth.currentUser && !auth.currentUser.isAnonymous) {
+					const token = await auth.currentUser.getIdToken(true) // Force refresh
+					localStorage.setItem('firebase_id_token', token)
+					console.log('Firebase token refreshed')
+					return token
+				}
+			} catch (error) {
+				console.error('Failed to refresh Firebase token:', error)
+			}
+			return null
 		}
 	}
 })

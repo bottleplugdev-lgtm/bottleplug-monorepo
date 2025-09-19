@@ -30,7 +30,11 @@ async function get_headers() {
                         console.log('Using Firebase ID token for signed-in user')
                 } catch (error) {
                         console.error('Failed to get ID token:', error)
+                        // Try to get token from localStorage as fallback
                         token = localStorage.getItem('firebase_id_token') || ''
+                        if (token) {
+                                console.log('Using cached Firebase ID token')
+                        }
                 }
         }
         
@@ -58,6 +62,11 @@ function handle_error(error, context) {
 		switch (status) {
 			case 401:
 				userMessage = 'Your session has expired. Please log in again.'
+				// Try to refresh the token if it's a Firebase auth issue
+				if (context !== 'token_refresh') {
+					console.log('Attempting to refresh Firebase token...')
+					// This will be handled by the retry mechanism
+				}
 				break
 			case 403:
 				userMessage = 'You don\'t have permission to perform this action.'
@@ -98,6 +107,25 @@ async function with_retry(fn, { attempts = 2 } = {}) {
 			return await fn() 
 		} catch (e) { 
 			lastErr = e
+			
+			// If it's a 401 error and we have a signed-in user, try to refresh the token
+			if (e.response?.status === 401 && i === 0) {
+				const auth = get_auth_instance()
+				if (auth.currentUser && !auth.currentUser.isAnonymous) {
+					try {
+						console.log('Refreshing Firebase token due to 401 error...')
+						const token = await auth.currentUser.getIdToken(true) // Force refresh
+						localStorage.setItem('firebase_id_token', token)
+						console.log('Token refreshed, retrying request...')
+						continue // Retry the request with the new token
+					} catch (tokenError) {
+						console.error('Failed to refresh token:', tokenError)
+						// Clear the invalid token
+						localStorage.removeItem('firebase_id_token')
+					}
+				}
+			}
+			
 			if (i === attempts - 1) {
 				const error = handle_error(e, 'api_request')
 				toast_error(error.userMessage)
