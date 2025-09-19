@@ -33,6 +33,18 @@ class CategoryViewSet(viewsets.ModelViewSet):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = PreserveStatePagination
     
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            # Allow public access for listing and retrieving categories
+            permission_classes = []
+        else:
+            # Require authentication for create, update, delete operations
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
 
     
     @swagger_auto_schema(tags=['products'])
@@ -309,6 +321,18 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     pagination_class = PreserveStatePagination
+    
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve', 'featured', 'new', 'on_sale', 'search', 'category']:
+            # Allow public access for listing, retrieving, and browsing products
+            permission_classes = []
+        else:
+            # Require authentication for create, update, delete operations
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
     
 
     

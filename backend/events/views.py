@@ -20,6 +20,18 @@ class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        if self.action in ['list', 'retrieve']:
+            # Allow public access for listing and retrieving events
+            permission_classes = []
+        else:
+            # Require authentication for create, update, delete operations
+            permission_classes = [permissions.IsAuthenticated]
+        return [permission() for permission in permission_classes]
+    
     @swagger_auto_schema(tags=['events'])
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
