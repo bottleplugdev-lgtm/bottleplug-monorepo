@@ -27,12 +27,14 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
         if not token:
             return None
         
-        # Skip JWT tokens - let JWTAuthentication handle them
-        # Firebase tokens typically don't start with 'eyJ' (JWT format)
-        # and are much longer than typical JWTs
-        if token.startswith('eyJ') and len(token) < 500:
-            # This looks like a JWT token, not a Firebase token
-            return None
+        # Firebase tokens are JWT tokens that start with 'eyJ'
+        # We need to verify them using Firebase Admin SDK
+        # Don't skip any tokens - let Firebase verification determine validity
+        
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Firebase authentication attempt with token: {token[:20]}... (length: {len(token)})")
         
         try:
             # Firebase should already be initialized in settings.py
