@@ -658,7 +658,7 @@ class CartViewSet(viewsets.ModelViewSet):
             ],
             'customer_name': getattr(user, 'full_name', user.email),
             'customer_email': user.email,
-            'customer_phone': getattr(user, 'phone_number', ''),
+            'customer_phone': request.data.get('customer_phone', getattr(user, 'phone_number', '')),
             'payment_method': request.data.get('payment_method', 'mobile_money'),
             'is_pickup': request.data.get('is_pickup', False),
             'delivery_address': request.data.get('delivery_address', ''),
