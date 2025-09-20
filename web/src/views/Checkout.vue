@@ -343,20 +343,21 @@ async function checkout_and_pay() {
 		
 		if (payment_response?.success) {
 			// Check if payment requires user action
-			if (payment_response?.next_action === 'payment_instruction') {
+			if (payment_response?.data?.next_action?.type === 'payment_instruction') {
 				// Show payment instructions to user
-				const instruction = payment_response?.payment_instruction || 'Please complete the payment on your mobile device'
+				const instruction = payment_response?.data?.note || payment_response?.data?.instructions?.note || 'Please complete the payment on your mobile device'
 				toast_success(`Payment initiated! ${instruction}`)
 				
 				// Redirect to order success page with payment pending status
 				window.location.href = `/order-success?order_id=${order_id}&payment_status=pending`
-			} else if (payment_response?.status === 'successful') {
+			} else if (payment_response?.data?.status === 'successful') {
 				// Payment successful
 				toast_success('Payment successful! Your order is being processed.')
 				window.location.href = `/order-success?order_id=${order_id}`
 			} else {
 				// Payment initiated but status unclear
-				toast_success('Payment initiated! Please check your mobile device for payment instructions.')
+				const instruction = payment_response?.data?.note || 'Please check your mobile device for payment instructions.'
+				toast_success(`Payment initiated! ${instruction}`)
 				window.location.href = `/order-success?order_id=${order_id}&payment_status=pending`
 			}
 		} else {
