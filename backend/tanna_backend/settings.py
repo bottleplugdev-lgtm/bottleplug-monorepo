@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,bottleplugug.com,www.bottleplugug.com,api.bottleplugug.com,admin.bottleplugug.com,dashboard.bottleplugug.com,docs.bottleplugug.com,db.bottleplugug.com', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -206,6 +206,7 @@ SITE_LOGO_PATH = os.path.join(MEDIA_ROOT, 'branding', 'logo.png')
 
 # Enhanced CORS settings for all platforms
 CORS_ALLOWED_ORIGINS = [
+    # Development origins
     "http://localhost:3000",    # React/Next.js
     "http://localhost:3001",    # Admin Dashboard
     "http://localhost:5173",    # Vite
@@ -216,6 +217,12 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "capacitor://localhost",    # Capacitor apps
     "ionic://localhost",        # Ionic apps
+    
+    # Production origins
+    "https://bottleplugug.com",
+    "https://www.bottleplugug.com",
+    "https://admin.bottleplugug.com",
+    "https://dashboard.bottleplugug.com",
 ]
 
 # Allow all origins in development for mobile apps
