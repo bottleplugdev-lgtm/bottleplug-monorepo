@@ -618,9 +618,12 @@ class CartViewSet(viewsets.ModelViewSet):
         """Checkout cart and create order"""
         user = request.user
         
-        # Handle WebUser - return error for anonymous checkout
-        if hasattr(user, 'user_type') and user.user_type == 'web':
-            logger.info("WebUser detected - checkout not allowed for anonymous users")
+        # Debug logging for user authentication
+        logger.info(f"Checkout request from user: {user} (type: {getattr(user, 'user_type', 'unknown')}, authenticated: {user.is_authenticated if hasattr(user, 'is_authenticated') else 'unknown'})")
+        
+        # Handle anonymous/unauthenticated users - return error for anonymous checkout
+        if not user or user.is_anonymous or (hasattr(user, 'user_type') and user.user_type == 'web'):
+            logger.info("Anonymous user detected - checkout not allowed for anonymous users")
             return Response(
                 {'error': 'Checkout requires user authentication. Please sign in to complete your order.'}, 
                 status=status.HTTP_401_UNAUTHORIZED

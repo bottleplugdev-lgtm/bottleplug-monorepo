@@ -46,11 +46,19 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
             # Get or create user
             user, created = self._get_or_create_user(decoded_token)
             
+            # Debug logging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Firebase authentication successful for user: {user.username} (type: {user.user_type})")
+            
             return (user, None)
             
         except Exception as e:
             # Don't raise an exception - let other authentication classes try
             # This prevents Firebase auth from blocking JWT auth
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Firebase authentication failed: {str(e)}")
             return None
     
     def _get_or_create_user(self, decoded_token):
