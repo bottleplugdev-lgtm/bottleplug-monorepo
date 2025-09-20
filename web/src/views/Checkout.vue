@@ -301,7 +301,8 @@ async function checkout_and_pay() {
 			delivery_address: address.value,
 			delivery_instructions: delivery_option.value === 'express' ? 'Express delivery requested' : 'Standard delivery',
 			delivery_fee: delivery_fee.value,
-			notes: coupon.value ? `Coupon applied: ${coupon.value}` : ''
+			notes: coupon.value ? `Coupon applied: ${coupon.value}` : '',
+			customer_phone: mm_phone.value.replace(/^\+?256/, '') // Add phone number to order data
 		}
 		
 		const order = await cart.checkout(order_data)
