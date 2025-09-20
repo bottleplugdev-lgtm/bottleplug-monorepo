@@ -30,9 +30,10 @@ export function image_url(path) {
 		return path
 	}
 	
-	// Handle localhost references (legacy)
+	// Handle localhost references (legacy) - convert to production URL
 	if (path.includes('localhost')) {
-		path = path.replace('localhost', 'localhost:8000')
+		path = path.replace('localhost:8000', 'api.bottleplugug.com')
+		path = path.replace('localhost', 'api.bottleplugug.com')
 	}
 	
 	const backend_url = getBackendUrl()
@@ -50,9 +51,9 @@ export function category_image_url(category) {
 		return image_url('bottleplug_logo.png')
 	}
 	
-	// Handle legacy localhost references
+	// Handle legacy localhost references - convert to production URL
 	if (category.image.includes('localhost')) {
-		return image_url(category.image.replace('localhost', 'localhost:8000'))
+		return image_url(category.image.replace('localhost:8000', 'api.bottleplugug.com').replace('localhost', 'api.bottleplugug.com'))
 	}
 	
 	return image_url(category.image)
