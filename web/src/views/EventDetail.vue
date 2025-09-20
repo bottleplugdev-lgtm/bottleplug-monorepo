@@ -228,6 +228,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { get_event, create_rsvp, complete_mobile_money_payment } from '../services/api'
 import { use_auth_store } from '../stores/auth'
+import { image_url as utils_image_url, get_fallback_image_url } from '../utils/image_utils'
 import { use_events_store } from '../stores/events'
 import { set_seo } from '../lib/seo'
 import { toast_success, toast_error } from '../lib/toast'
@@ -359,19 +360,11 @@ onMounted(async () => {
 })
 
 function image_url(path) {
-	if (!path) return 'http://localhost:8000/media/bottleplug_logo.png'
-	if (/^https?:/.test(path)) {
-		path = path.replace('localhost', 'localhost:8000')
-		return path
-	}
-	
-	const backend_url = 'http://localhost:8000'
-	const clean_path = path.replace(/^\/?media\//, '')
-	return `${backend_url}/media/${clean_path}`
+	return utils_image_url(path)
 }
 
 function handle_image_error(event) {
-	event.target.src = 'http://localhost:8000/media/bottleplug_logo.png'
+	event.target.src = get_fallback_image_url()
 }
 
 function format_price(value) {

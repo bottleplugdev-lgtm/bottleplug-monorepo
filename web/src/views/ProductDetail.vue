@@ -278,6 +278,7 @@ import { require_auth_for_action } from '../utils/auth_guard'
 import { use_cart_store } from '../stores/cart'
 import { set_seo } from '../lib/seo'
 import { toast_success, toast_error } from '../lib/toast'
+import { image_url as utils_image_url, get_fallback_image_url } from '../utils/image_utils'
 
 const route = useRoute()
 const router = useRouter()
@@ -337,15 +338,7 @@ onMounted(async () => {
 })
 
 function image_url(path) {
-	if (!path) return 'http://localhost:8000/media/bottleplug_logo.png'
-	if (/^https?:/.test(path)) {
-		path = path.replace('localhost', 'localhost:8000')
-		return path
-	}
-	
-	const backend_url = 'http://localhost:8000'
-	const clean_path = path.replace(/^\/?media\//, '')
-	return `${backend_url}/media/${clean_path}`
+	return utils_image_url(path)
 }
 
 function image_srcset(path) {

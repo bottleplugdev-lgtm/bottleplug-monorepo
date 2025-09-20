@@ -161,6 +161,7 @@ import { require_auth_for_action } from '../utils/auth_guard'
 import { set_seo } from '../lib/seo'
 import { toast_success, toast_error } from '../lib/toast'
 import { use_auth_store } from '../stores/auth'
+import { image_url as utils_image_url, get_fallback_image_url } from '../utils/image_utils'
 
 const store = use_products_store()
 const cart = use_cart_store()
@@ -205,25 +206,12 @@ function format_price(value) {
 }
 
 function image_url(path) {
-        if (!path) return 'http://localhost:8000/media/bottleplug_logo.png'
-	if (/^https?:/.test(path)) {
-		path = path.replace('localhost', 'localhost:8000')
-		return path
-	}
-	
-	        // Build full URL from relative path
-        // The backend returns relative paths like 'products/image.jpg' or 'media/products/image.jpg'
-        // We need to construct the full URL using the backend URL directly
-        const backend_url = 'http://localhost:8000'
-
-        // Remove any leading 'media/' from the path to avoid duplication
-        const clean_path = path.replace(/^\/?media\//, '')
-        return `${backend_url}/media/${clean_path}`
+	return utils_image_url(path)
 }
 
 function handle_image_error(event) {
 	// Fallback to logo if image fails to load
-	event.target.src = 'http://localhost:8000/media/bottleplug_logo.png'
+	event.target.src = get_fallback_image_url()
 }
 
 function image_srcset(path) {

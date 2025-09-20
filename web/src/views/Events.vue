@@ -222,6 +222,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { get_events, create_rsvp, complete_mobile_money_payment } from '../services/api'
 import { use_auth_store } from '../stores/auth'
+import { image_url as utils_image_url, get_fallback_image_url } from '../utils/image_utils'
 import { use_events_store } from '../stores/events'
 import { set_seo } from '../lib/seo'
 import { toast_success, toast_error } from '../lib/toast'
@@ -337,20 +338,7 @@ onMounted(async () => {
 })
 
 function image_url(path) {
-        if (!path) return 'http://localhost:8000/media/bottleplug_logo.png'
-	if (/^https?:/.test(path)) {
-		path = path.replace('localhost', 'localhost:8000')
-		return path
-	}
-	
-	        // Build full URL from relative path
-        // The backend returns relative paths like 'products/image.jpg' or 'media/products/image.jpg'
-        // We need to construct the full URL using the backend URL directly
-        const backend_url = 'http://localhost:8000'
-
-        // Remove any leading 'media/' from the path to avoid duplication
-        const clean_path = path.replace(/^\/?media\//, '')
-        return `${backend_url}/media/${clean_path}`
+	return utils_image_url(path)
 }
 
 function format_price(value) {
