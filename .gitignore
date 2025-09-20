@@ -6,6 +6,10 @@
 .env.development
 .env.test
 
+# Firebase service account files (keep secure)
+backend/firebase/*.json
+firebase/*.json
+
 # Dependencies
 node_modules/
 */node_modules/

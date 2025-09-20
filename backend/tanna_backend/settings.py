@@ -372,16 +372,40 @@ DEFAULT_REDIRECT_URL = os.environ.get('DEFAULT_REDIRECT_URL', 'boozenation://ret
 
 # Firebase Admin SDK initialization
 try:
-    # Initialize Firebase Admin SDK
-    if FIREBASE_CREDENTIALS_PATH and os.path.exists(FIREBASE_CREDENTIALS_PATH):
+    # Try environment variables first (for production)
+    firebase_private_key = config('FIREBASE_PRIVATE_KEY', default='')
+    firebase_client_email = config('FIREBASE_CLIENT_EMAIL', default='')
+    firebase_project_id = config('FIREBASE_PROJECT_ID', default='')
+    
+    if firebase_private_key and firebase_client_email and firebase_project_id:
+        # Initialize with environment variables
+        firebase_credentials = {
+            "type": "service_account",
+            "project_id": firebase_project_id,
+            "private_key_id": config('FIREBASE_PRIVATE_KEY_ID', default=''),
+            "private_key": firebase_private_key.replace('\\n', '\n'),
+            "client_email": firebase_client_email,
+            "client_id": config('FIREBASE_CLIENT_ID', default=''),
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": config('FIREBASE_CLIENT_X509_CERT_URL', default=''),
+            "universe_domain": "googleapis.com"
+        }
+        cred = credentials.Certificate(firebase_credentials)
+        firebase_admin.initialize_app(cred)
+        print("Firebase Admin SDK initialized successfully with environment variables")
+    elif FIREBASE_CREDENTIALS_PATH and os.path.exists(FIREBASE_CREDENTIALS_PATH):
+        # Fallback to file path
         cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
         firebase_admin.initialize_app(cred)
-        print("Firebase Admin SDK initialized successfully with custom credentials")
+        print("Firebase Admin SDK initialized successfully with custom credentials file")
     elif os.path.exists(FIREBASE_SERVICE_ACCOUNT_KEY_PATH):
+        # Fallback to default file path
         cred = credentials.Certificate(FIREBASE_SERVICE_ACCOUNT_KEY_PATH)
         firebase_admin.initialize_app(cred)
-        print("Firebase Admin SDK initialized successfully with default credentials")
+        print("Firebase Admin SDK initialized successfully with default credentials file")
     else:
-        print(f"Firebase credentials file not found at: {FIREBASE_SERVICE_ACCOUNT_KEY_PATH}")
+        print(f"Firebase credentials not found. Check environment variables or file at: {FIREBASE_SERVICE_ACCOUNT_KEY_PATH}")
 except Exception as e:
     print(f"Failed to initialize Firebase Admin SDK: {e}")
