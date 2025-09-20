@@ -238,15 +238,22 @@ async function toggle_wishlist(p) {
         return require_auth_for_action('Add to Wishlist', async () => {
                 try {
                         if (is_in_wishlist(p)) {
-                                await remove_wishlist_item(p.id)
-                                wishlist_ids.value.delete(p.id)
-                                toast_success('Removed from wishlist')
+                                // Get the wishlist item ID first
+                                const wl = await get_wishlist()
+                                const list = wl?.results || wl || []
+                                const item = list.find(i => i.product === p.id)
+                                if (item) {
+                                        await remove_wishlist_item(item.id)
+                                        wishlist_ids.value.delete(p.id)
+                                        toast_success('Removed from wishlist')
+                                }
                         } else {
-                                await add_to_wishlist(p.id)
+                                await add_to_wishlist({ product: p.id })
                                 wishlist_ids.value.add(p.id)
                                 toast_success('Added to wishlist')
                         }
                 } catch (err) {
+                        console.error('Wishlist error:', err)
                         toast_error('Failed to update wishlist')
                 }
         })
