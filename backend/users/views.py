@@ -24,21 +24,12 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [FirebaseAuthentication]
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="Get current user's profile"
-    )
     @action(detail=False, methods=['get'])
     def profile(self, request):
         """Get current user's profile"""
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data)
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="Update current user's profile",
-        request_body=UserProfileUpdateSerializer
-    )
     @action(detail=False, methods=['put', 'patch'])
     def update_profile(self, request):
         """Update current user's profile"""
@@ -80,10 +71,6 @@ class UserViewSet(viewsets.ModelViewSet):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="Upload profile image"
-    )
     @action(detail=False, methods=['post'])
     def upload_profile_image(self, request):
         """Upload profile image"""
@@ -128,10 +115,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="Delete profile image"
-    )
     @action(detail=False, methods=['delete'])
     def delete_profile_image(self, request):
         """Delete profile image"""
@@ -153,10 +136,6 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="Get user by ID (admin only)"
-    )
     def retrieve(self, request, pk=None):
         """Get user by ID (admin only)"""
         if not request.user.is_admin_user:
@@ -169,10 +148,6 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = UserProfileSerializer(user)
         return Response(serializer.data)
 
-    @swagger_auto_schema(
-        tags=['users'],
-        operation_description="List all users (admin only)"
-    )
     def list(self, request):
         """List all users (admin only)"""
         if not request.user.is_admin_user:

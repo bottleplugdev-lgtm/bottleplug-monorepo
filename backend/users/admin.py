@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth import get_user_model
-from .models import UserSession
 
 User = get_user_model()
 
@@ -33,14 +32,7 @@ class UserAdmin(BaseUserAdmin):
         }),
         ('Driver Info', {
             'fields': (
-                'vehicle_type', 'vehicle_number', 'license_number', 'rating',
-                'total_deliveries'
-            ),
-            'classes': ('collapse',)
-        }),
-        ('Customer Info', {
-            'fields': (
-                'saved_addresses', 'default_payment_method', 'wallet_balance'
+                'vehicle_type', 'vehicle_number', 'license_number', 'rating'
             ),
             'classes': ('collapse',)
         }),
@@ -72,32 +64,4 @@ class UserAdmin(BaseUserAdmin):
         return super().get_queryset(request).select_related()
 
 
-@admin.register(UserSession)
-class UserSessionAdmin(admin.ModelAdmin):
-    """Admin configuration for UserSession model"""
-    
-    list_display = [
-        'user', 'session_token', 'ip_address', 'is_active', 'created_at'
-    ]
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['user__email', 'session_token', 'ip_address']
-    ordering = ['-created_at']
-    
-    fieldsets = (
-        (None, {
-            'fields': ('user', 'session_token', 'is_active')
-        }),
-        ('Device Info', {
-            'fields': ('device_info', 'ip_address', 'user_agent'),
-            'classes': ('collapse',)
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'last_activity'),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    readonly_fields = ['created_at', 'last_activity']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user')
+# UserSession model has been removed - admin configuration removed
