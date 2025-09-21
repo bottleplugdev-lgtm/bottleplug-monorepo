@@ -174,7 +174,8 @@
 				<div v-if="selected_invoice" class="modal_body">
 					<div class="payment_summary">
 						<div class="payment_info">
-							<h3>Invoice #{{ selected_invoice.invoice_number }}</h3>
+							<h3>Pay for Order #{{ selected_invoice.order?.order_number || 'N/A' }}</h3>
+							<p class="payment_subtitle">Invoice: {{ selected_invoice.invoice_number }}</p>
 							<p class="payment_amount">Amount to Pay: <strong>UGX {{ format_currency(selected_invoice.balance_due) }}</strong></p>
 						</div>
 					</div>
@@ -327,7 +328,7 @@ const process_invoice_payment = async () => {
 	try {
 		is_processing_payment.value = true
 		
-		// Prepare payment data for Flutterwave v4
+		// Prepare payment data for Flutterwave v4 - Payment is for the order
 		const payment_data = {
 			customer_data: {
 				email: auth_store.firebase_user?.email || '',
@@ -344,13 +345,15 @@ const process_invoice_payment = async () => {
 			charge_data: {
 				amount: Math.round(Number(selected_invoice.value.balance_due)), // Round off to integer
 				currency: 'UGX',
-				reference: `invoice${selected_invoice.value.id}${Date.now()}${Math.random().toString(36).substr(2, 9)}`
+				reference: `order${selected_invoice.value.order?.id || selected_invoice.value.id}${Date.now()}${Math.random().toString(36).substr(2, 9)}`
 			},
-			invoice_id: selected_invoice.value.id,
-			invoice_data: {
-				invoice_number: selected_invoice.value.invoice_number,
+			order_id: selected_invoice.value.order?.id, // Payment is for the order
+			invoice_id: selected_invoice.value.id, // Keep invoice reference for tracking
+			order_data: {
 				order_number: selected_invoice.value.order?.order_number || 'N/A',
-				balance_due: selected_invoice.value.balance_due
+				invoice_number: selected_invoice.value.invoice_number,
+				balance_due: selected_invoice.value.balance_due,
+				payment_type: 'invoice_payment'
 			}
 		}
 		
@@ -869,6 +872,12 @@ onMounted(async () => {
 	color: #1a0f0f;
 	font-size: 1.2rem;
 	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+.payment_subtitle {
+	color: #6b7280;
+	font-size: 0.9rem;
 	margin-bottom: 10px;
 }
 
