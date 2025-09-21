@@ -163,6 +163,70 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Payment Modal -->
+		<div v-if="show_payment_modal" class="modal_overlay" @click="close_payment_modal">
+			<div class="modal_content payment_modal" @click.stop>
+				<div class="modal_header">
+					<h2>Pay Invoice</h2>
+					<button @click="close_payment_modal" class="close_btn">×</button>
+				</div>
+				<div v-if="selected_invoice" class="modal_body">
+					<div class="payment_summary">
+						<div class="payment_info">
+							<h3>Invoice #{{ selected_invoice.invoice_number }}</h3>
+							<p class="payment_amount">Amount to Pay: <strong>UGX {{ format_currency(selected_invoice.balance_due) }}</strong></p>
+						</div>
+					</div>
+
+					<div class="payment_form">
+						<div class="form_group">
+							<label for="mm_network">Mobile Money Network</label>
+							<select id="mm_network" v-model="mm_network" class="form_input" required>
+								<option value="">Select Network</option>
+								<option value="MTN">MTN Mobile Money</option>
+								<option value="AIRTEL">Airtel Money</option>
+							</select>
+						</div>
+
+						<div class="form_group">
+							<label for="mm_phone">Phone Number</label>
+							<input 
+								id="mm_phone"
+								v-model="mm_phone" 
+								type="tel" 
+								placeholder="e.g., 0701234567 or +256701234567"
+								class="form_input"
+								required
+							/>
+							<small class="form_help">Enter your mobile money phone number</small>
+						</div>
+					</div>
+
+					<div class="payment_instructions">
+						<div class="instruction_icon">📱</div>
+						<div class="instruction_text">
+							<h4>Payment Instructions</h4>
+							<p>After clicking "Pay Now", you will receive a payment request on your phone. Follow the prompts to complete the payment.</p>
+						</div>
+					</div>
+
+					<div class="modal_actions">
+						<button @click="close_payment_modal" class="action_btn secondary_btn" :disabled="is_processing_payment">
+							Cancel
+						</button>
+						<button 
+							@click="process_invoice_payment" 
+							class="action_btn pay_btn"
+							:disabled="!mm_network || !mm_phone || is_processing_payment"
+						>
+							<span v-if="is_processing_payment" class="loading_spinner_small"></span>
+							{{ is_processing_payment ? 'Processing...' : 'Pay Now' }}
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -171,7 +235,7 @@ import { ref, computed, onMounted } from 'vue'
 import { use_auth_store } from '../stores/auth'
 import { toast_success, toast_error } from '../lib/toast'
 import { set_seo } from '../lib/seo'
-import { get_invoices } from '../services/api'
+import { get_invoices, complete_mobile_money_payment } from '../services/api'
 import { useScrollToTop } from '../composables/useScrollToTop'
 
 // Use scroll to top composable
@@ -191,6 +255,10 @@ const invoices = ref([])
 const status_filter = ref('')
 const show_invoice_modal = ref(false)
 const selected_invoice = ref(null)
+const show_payment_modal = ref(false)
+const mm_network = ref('')
+const mm_phone = ref('')
+const is_processing_payment = ref(false)
 
 // Computed
 const filtered_invoices = computed(() => {
@@ -232,12 +300,98 @@ const close_invoice_modal = () => {
 }
 
 const pay_invoice = (invoice) => {
-	// Close modal if open
+	// Close invoice modal if open
 	close_invoice_modal()
 	
-	// Navigate to checkout with invoice payment
-	// For now, show a message that this feature is coming soon
-	toast_success('Payment feature coming soon!')
+	// Set selected invoice for payment
+	selected_invoice.value = invoice
+	
+	// Show payment modal
+	show_payment_modal.value = true
+}
+
+const close_payment_modal = () => {
+	show_payment_modal.value = false
+	selected_invoice.value = null
+	mm_network.value = ''
+	mm_phone.value = ''
+	is_processing_payment.value = false
+}
+
+const process_invoice_payment = async () => {
+	if (!selected_invoice.value || !mm_network.value || !mm_phone.value) {
+		toast_error('Please fill in all payment details')
+		return
+	}
+	
+	try {
+		is_processing_payment.value = true
+		
+		// Prepare payment data for Flutterwave v4
+		const payment_data = {
+			customer_data: {
+				email: auth_store.firebase_user?.email || '',
+				name: {
+					first: auth_store.firebase_user?.displayName?.split(' ')[0] || 'Customer',
+					last: auth_store.firebase_user?.displayName?.split(' ').slice(1).join(' ') || ''
+				}
+			},
+			mobile_money_data: {
+				country_code: '256', // Uganda
+				network: mm_network.value,
+				phone_number: mm_phone.value.replace(/^\+?256/, '') // Remove country code prefix
+			},
+			charge_data: {
+				amount: Math.round(Number(selected_invoice.value.balance_due)), // Round off to integer
+				currency: 'UGX',
+				reference: `invoice${selected_invoice.value.id}${Date.now()}${Math.random().toString(36).substr(2, 9)}`
+			},
+			invoice_id: selected_invoice.value.id,
+			invoice_data: {
+				invoice_number: selected_invoice.value.invoice_number,
+				order_number: selected_invoice.value.order?.order_number || 'N/A',
+				balance_due: selected_invoice.value.balance_due
+			}
+		}
+		
+		console.log('🔍 Invoice payment data:', payment_data)
+		const payment_response = await complete_mobile_money_payment(payment_data)
+		
+		console.log('🔍 Invoice payment response:', payment_response)
+		
+		if (payment_response?.success) {
+			// Check if payment requires user action
+			if (payment_response?.data?.next_action?.type === 'payment_instruction') {
+				// Show payment instructions to user
+				const instruction = payment_response?.data?.note || payment_response?.data?.instructions?.note || 'Please complete the payment on your mobile device'
+				toast_success(`Payment initiated! ${instruction}`)
+				
+				// Close payment modal and refresh invoices
+				close_payment_modal()
+				await load_invoices()
+			} else if (payment_response?.data?.status === 'successful') {
+				// Payment successful
+				toast_success('Payment successful! Your invoice has been updated.')
+				close_payment_modal()
+				await load_invoices()
+			} else {
+				// Payment initiated but status unclear
+				const instruction = payment_response?.data?.note || 'Please check your mobile device for payment instructions.'
+				toast_success(`Payment initiated! ${instruction}`)
+				close_payment_modal()
+				await load_invoices()
+			}
+		} else {
+			// Payment failed
+			const error_message = payment_response?.error || 'Payment initiation failed. Please try again.'
+			toast_error(error_message)
+		}
+	} catch (error) {
+		console.error('Invoice payment error:', error)
+		toast_error('Payment failed. Please try again.')
+	} finally {
+		is_processing_payment.value = false
+	}
 }
 
 const format_date = (date_string) => {
@@ -698,6 +852,125 @@ onMounted(async () => {
 	background: #e5e7eb;
 }
 
+/* Payment Modal Styles */
+.payment_modal {
+	max-width: 500px;
+}
+
+.payment_summary {
+	background: #f9fafb;
+	border-radius: 8px;
+	padding: 20px;
+	margin-bottom: 20px;
+	text-align: center;
+}
+
+.payment_info h3 {
+	color: #1a0f0f;
+	font-size: 1.2rem;
+	font-weight: 600;
+	margin-bottom: 10px;
+}
+
+.payment_amount {
+	color: #6b7280;
+	font-size: 1rem;
+}
+
+.payment_amount strong {
+	color: #DAA520;
+	font-size: 1.1rem;
+}
+
+.payment_form {
+	margin-bottom: 20px;
+}
+
+.form_group {
+	margin-bottom: 20px;
+}
+
+.form_group label {
+	display: block;
+	margin-bottom: 6px;
+	color: #374151;
+	font-weight: 600;
+	font-size: 0.9rem;
+}
+
+.form_input {
+	width: 100%;
+	padding: 12px;
+	border: 1px solid #d1d5db;
+	border-radius: 8px;
+	font-size: 1rem;
+	transition: border-color 0.3s ease;
+}
+
+.form_input:focus {
+	outline: none;
+	border-color: #DAA520;
+	box-shadow: 0 0 0 3px rgba(218, 165, 32, 0.1);
+}
+
+.form_help {
+	display: block;
+	margin-top: 4px;
+	color: #6b7280;
+	font-size: 0.8rem;
+}
+
+.payment_instructions {
+	background: #fef3c7;
+	border: 1px solid #f59e0b;
+	border-radius: 8px;
+	padding: 15px;
+	margin-bottom: 20px;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.instruction_icon {
+	font-size: 1.5rem;
+	flex-shrink: 0;
+}
+
+.instruction_text h4 {
+	color: #92400e;
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.instruction_text p {
+	color: #92400e;
+	font-size: 0.85rem;
+	line-height: 1.4;
+	margin: 0;
+}
+
+.loading_spinner_small {
+	width: 16px;
+	height: 16px;
+	border: 2px solid transparent;
+	border-top: 2px solid currentColor;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	display: inline-block;
+	margin-right: 8px;
+}
+
+.action_btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.action_btn:disabled:hover {
+	transform: none;
+	box-shadow: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
 	.invoices_grid {
@@ -716,6 +989,11 @@ onMounted(async () => {
 	
 	.modal_actions {
 		flex-direction: column;
+	}
+	
+	.payment_modal {
+		margin: 10px;
+		max-width: calc(100vw - 20px);
 	}
 }
 </style>
