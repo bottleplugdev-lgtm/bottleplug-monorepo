@@ -295,6 +295,19 @@ export async function get_order_stats() {
         return api_get('/orders/orders/order_stats/', {}) // Dynamic auth
 }
 
+// ===== INVOICES =====
+export async function get_invoices(params = {}) {
+        return api_get('/orders/invoices/', params)
+}
+
+export async function get_invoice(invoice_id) {
+        return api_get(`/orders/invoices/${invoice_id}/`)
+}
+
+export async function get_invoice_stats() {
+        return api_get('/orders/invoices/stats/')
+}
+
 // ===== WISHLIST =====
 export async function get_wishlist(params = {}) {
         // Always use web token for wishlist reading

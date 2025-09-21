@@ -206,6 +206,10 @@
 									<span class="action_icon">📋</span>
 									<span class="action_text">Order History</span>
 								</RouterLink>
+								<RouterLink to="/invoices" class="action_card">
+									<span class="action_icon">🧾</span>
+									<span class="action_text">My Invoices</span>
+								</RouterLink>
 								<RouterLink to="/delivery-tracking" class="action_card">
 									<span class="action_icon">🚚</span>
 									<span class="action_text">Track Deliveries</span>

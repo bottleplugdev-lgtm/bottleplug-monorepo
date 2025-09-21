@@ -153,10 +153,10 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def list(self, request):
-        """List all users (admin only)"""
-        if not request.user.is_admin_user:
+        """List all users (admin or staff only)"""
+        if not (request.user.is_admin_user or request.user.is_staff):
             return Response(
-                {'error': 'Admin access required'}, 
+                {'error': 'Admin or staff access required'}, 
                 status=status.HTTP_403_FORBIDDEN
             )
         

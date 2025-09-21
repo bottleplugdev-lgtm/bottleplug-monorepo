@@ -19,6 +19,7 @@ const routes = [
 	{ path: '/about', name: 'about', component: () => import('../views/About.vue') },
 	{ path: '/delivery-tracking', name: 'delivery_tracking', component: () => import('../views/DeliveryTracking.vue'), meta: { requires_auth: true } },
 	{ path: '/order-history', name: 'order_history', component: () => import('../views/OrderHistory.vue'), meta: { requires_auth: true } },
+	{ path: '/invoices', name: 'invoices', component: () => import('../views/Invoices.vue'), meta: { requires_auth: true } },
 	{ path: '/payments', name: 'payments', component: () => import('../views/PaymentHistory.vue'), meta: { requires_auth: true } },
 	{ path: '/profile', name: 'profile', component: () => import('../views/Profile.vue'), meta: { requires_auth: true } },
 	{ path: '/support', name: 'support', component: () => import('../views/Support.vue') }
