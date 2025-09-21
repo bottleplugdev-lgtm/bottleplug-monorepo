@@ -1936,7 +1936,8 @@ const getStatusIcon = (status) => {
 
 const confirmOrderAction = async (orderId) => {
   try {
-    await confirmOrder(orderId)
+    // Use the same endpoint as the recycle button instead of the /confirm/ endpoint
+    await updateOrderStatus(orderId, 'confirmed')
     toast.success('Order confirmed successfully')
     await fetchOrders()
   } catch (error) {
