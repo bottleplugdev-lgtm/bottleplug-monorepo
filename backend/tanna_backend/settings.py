@@ -67,7 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'tanna_backend.middleware.CORSHeadersMiddleware',
+    # 'tanna_backend.middleware.CORSHeadersMiddleware',  # Temporarily disabled to test CORS
     'tanna_backend.middleware.ErrorHandlingMiddleware',
     'tanna_backend.middleware.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -229,6 +229,7 @@ CORS_ALLOWED_ORIGINS = [
     "https://www.bottleplugug.com",
     "https://admin.bottleplugug.com",
     "https://dashboard.bottleplugug.com",
+    "https://api.bottleplugug.com",  # API domain itself
 ]
 
 # Allow all origins in development for mobile apps

@@ -140,6 +140,7 @@ import { use_auth_store } from '../stores/auth'
 import { toast_success, toast_error } from '../lib/toast'
 import { set_seo } from '../lib/seo'
 import { getUserProfile, updateUserProfile, uploadProfileImage } from '../services/api'
+import { useScrollToTop } from '../composables/useScrollToTop'
 
 const auth_store = use_auth_store()
 const updating = ref(false)
@@ -169,6 +170,9 @@ set_seo({
 	title: 'Profile Information · BottlePlug', 
 	description: 'Manage your personal information, profile picture, and account settings on BottlePlug.' 
 })
+
+// Use scroll to top composable
+useScrollToTop()
 
 onMounted(async () => {
 	await load_user_profile()

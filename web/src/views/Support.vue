@@ -151,6 +151,7 @@ import { ref, onMounted } from 'vue'
 import { use_auth_store } from '../stores/auth'
 import { toast_success, toast_error } from '../lib/toast'
 import { set_seo } from '../lib/seo'
+import { useScrollToTop } from '../composables/useScrollToTop'
 
 const auth_store = use_auth_store()
 const submitting = ref(false)
@@ -202,6 +203,9 @@ set_seo({
 	title: 'Customer Support · BottlePlug', 
 	description: 'Get help with your BottlePlug orders, delivery, payments, and account. Contact our support team or browse our FAQ.' 
 })
+
+// Use scroll to top composable
+useScrollToTop()
 
 onMounted(() => {
 	// Pre-fill form with user data if available

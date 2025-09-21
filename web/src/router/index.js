@@ -26,7 +26,18 @@ const routes = [
 
 const router = createRouter({
 	history: createWebHistory(),
-	routes
+	routes,
+	scrollBehavior(to, from, savedPosition) {
+		// Always scroll to top when navigating to a new route
+		// This ensures pages start at the top after reload
+		if (savedPosition) {
+			// If there's a saved position (like browser back/forward), use it
+			return savedPosition
+		} else {
+			// Otherwise, always scroll to top
+			return { top: 0, left: 0, behavior: 'smooth' }
+		}
+	}
 })
 
 router.beforeEach(async (to, from, next) => {
