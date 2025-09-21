@@ -493,3 +493,54 @@ export async function get_newsletter_campaigns(params = {}) {
 export async function get_mobile_config() {
 	return api_get('/mobile/config/')
 }
+
+// ===== USER PROFILE =====
+export const getUserProfile = async () => {
+  try {
+    return await apiRequest('/users/users/profile/', { method: 'GET' })
+  } catch (error) {
+    console.error('Failed to get user profile:', error)
+    throw error
+  }
+}
+
+export const updateUserProfile = async (profileData) => {
+  try {
+    return await apiRequest('/users/users/update_profile/', {
+      method: 'PATCH',
+      body: JSON.stringify(profileData)
+    })
+  } catch (error) {
+    console.error('Failed to update user profile:', error)
+    throw error
+  }
+}
+
+export const uploadProfileImage = async (imageFile) => {
+  try {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+    
+    return await apiRequest('/users/users/upload_profile_image/', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        // Don't set Content-Type, let browser set it with boundary for FormData
+      }
+    })
+  } catch (error) {
+    console.error('Failed to upload profile image:', error)
+    throw error
+  }
+}
+
+export const deleteProfileImage = async () => {
+  try {
+    return await apiRequest('/users/users/delete_profile_image/', {
+      method: 'DELETE'
+    })
+  } catch (error) {
+    console.error('Failed to delete profile image:', error)
+    throw error
+  }
+}

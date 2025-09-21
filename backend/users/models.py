@@ -5,10 +5,8 @@ from django.utils import timezone
 
 class User(AbstractUser):
     """
-    Custom User model that supports Firebase authentication
-    and user types from the analyzed projects (customer, driver, admin)
+    Custom user model extending Django's AbstractUser
     """
-    
     USER_TYPES = [
         ('customer', 'Customer'),
         ('driver', 'Driver'),
@@ -31,37 +29,28 @@ class User(AbstractUser):
     vehicle_number = models.CharField(max_length=20, blank=True, null=True)
     license_number = models.CharField(max_length=50, blank=True, null=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, null=True, blank=True)
-    total_deliveries = models.IntegerField(default=0)
-    is_available = models.BooleanField(default=True)
-    current_status = models.CharField(max_length=20, default='offline')
-    # Customer fields
-    saved_addresses = models.JSONField(default=list, blank=True)
-    default_payment_method = models.CharField(max_length=50, blank=True, null=True)
-    wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    # Push notification fields
-    push_token = models.TextField(blank=True, null=True)
-    platform = models.CharField(max_length=20, choices=[('android', 'Android'), ('ios', 'iOS')], blank=True)
-    # Role fields
-    is_staff = models.BooleanField(default=False, null=True, blank=True)
-    is_admin = models.BooleanField(default=False, null=True, blank=True)
-    is_worker = models.BooleanField(default=False, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    # Additional profile fields
+    bio = models.TextField(blank=True, null=True, help_text="User's bio or description")
+    first_name = models.CharField(max_length=150, blank=True, null=True)
+    last_name = models.CharField(max_length=150, blank=True, null=True)
+    
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        db_table = 'users'
+        ordering = ['-created_at']
+
     def __str__(self):
-        return f"{self.username} ({self.user_type})"
-    
+        return self.email or self.username
+
     @property
-    def full_name(self):
-        return f"{self.first_name} {self.last_name}".strip()
+    def is_customer(self):
+        return self.user_type == 'customer'
     
     @property
     def is_driver(self):
         return self.user_type == 'driver'
-    
-    @property
-    def is_customer(self):
-        return self.user_type == 'customer'
     
     @property
     def is_admin_user(self):
@@ -72,26 +61,18 @@ class User(AbstractUser):
         if not self.username and self.email:
             self.username = self.email
         super().save(*args, **kwargs)
-    
-    class Meta:
-        db_table = 'users'
 
+    def get_full_name(self):
+        """Return the first_name plus the last_name, with a space in between."""
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        elif self.first_name:
+            return self.first_name
+        elif self.last_name:
+            return self.last_name
+        else:
+            return self.email or self.username
 
-class UserSession(models.Model):
-    """
-    Track user sessions for analytics and security
-    """
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
-    session_token = models.TextField(unique=True)  # Changed to TextField for longer Firebase tokens
-    device_info = models.JSONField(default=dict, blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(default=timezone.now)
-    last_activity = models.DateTimeField(default=timezone.now)
-    
-    class Meta:
-        db_table = 'user_sessions'
-    
-    def __str__(self):
-        return f"Session for {self.user.email} - {self.created_at}"
+    def get_short_name(self):
+        """Return the short name for the user."""
+        return self.first_name or self.email or self.username
