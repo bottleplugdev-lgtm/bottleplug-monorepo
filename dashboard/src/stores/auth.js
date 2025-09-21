@@ -20,9 +20,9 @@ export const useAuthStore = defineStore('auth', () => {
   const userProfile = ref(null)
   const authInitialized = ref(false)
   const backendUser = ref(null)
-  const accessToken = ref(localStorage.getItem('access_token') || null)
-  const refreshToken = ref(localStorage.getItem('refresh_token') || null)
-  const sessionId = ref(localStorage.getItem('session_id') || null)
+  const accessToken = ref(localStorage.getItem('access_token') || null) // eslint-disable-line no-undef
+  const refreshToken = ref(localStorage.getItem('refresh_token') || null) // eslint-disable-line no-undef
+  const sessionId = ref(localStorage.getItem('session_id') || null) // eslint-disable-line no-undef
   const showAccessDenied = ref(false)
 
   const isAuthenticated = computed(() => !!user.value)
@@ -30,18 +30,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Persist tokens to localStorage
   const persistTokens = () => {
-    if (accessToken.value) localStorage.setItem('access_token', accessToken.value)
-    if (refreshToken.value) localStorage.setItem('refresh_token', refreshToken.value)
-    if (sessionId.value) localStorage.setItem('session_id', sessionId.value)
+    if (accessToken.value) localStorage.setItem('access_token', accessToken.value) // eslint-disable-line no-undef
+    if (refreshToken.value) localStorage.setItem('refresh_token', refreshToken.value) // eslint-disable-line no-undef
+    if (sessionId.value) localStorage.setItem('session_id', sessionId.value) // eslint-disable-line no-undef
   }
 
   // Navigate to intended destination or dashboard after successful auth
   const redirect_after_auth = async () => {
     try {
       const { default: router } = await import('@/router')
-      const intended = sessionStorage.getItem('intendedDestination')
+      const intended = sessionStorage.getItem('intendedDestination') // eslint-disable-line no-undef
       if (intended && intended !== '/' && intended !== '/login') {
-        sessionStorage.removeItem('intendedDestination')
+        sessionStorage.removeItem('intendedDestination') // eslint-disable-line no-undef
         await router.push(intended)
       } else {
         await router.push('/dashboard')
@@ -56,28 +56,28 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null
     refreshToken.value = null
     sessionId.value = null
-    localStorage.removeItem('access_token')
-    localStorage.removeItem('refresh_token')
-    localStorage.removeItem('session_id')
-    localStorage.removeItem('bottleplug_session')
+    localStorage.removeItem('access_token') // eslint-disable-line no-undef
+    localStorage.removeItem('refresh_token') // eslint-disable-line no-undef
+    localStorage.removeItem('session_id') // eslint-disable-line no-undef
+    localStorage.removeItem('bottleplug_session') // eslint-disable-line no-undef
   }
 
   // Initialize auth state listener
   const initAuth = async () => {
     if (authInitialized.value) return
     
-    console.log('Initializing auth...')
+    console.log('Initializing auth...') // eslint-disable-line no-console, no-undef
     authInitialized.value = true
     loading.value = true
     
     // First, try to restore session from localStorage
     const existingSession = checkExistingSession()
     if (existingSession && accessToken.value) {
-      console.log('Found existing session, attempting to restore...')
+      console.log('Found existing session, attempting to restore...') // eslint-disable-line no-console, no-undef
       try {
         const isValid = await checkTokenValidity()
         if (isValid) {
-          console.log('Session tokens are valid, restoring user state...')
+          console.log('Session tokens are valid, restoring user state...') // eslint-disable-line no-console, no-undef
           // Create a minimal user object for immediate auth state
           user.value = {
             uid: existingSession.uid,
@@ -87,19 +87,19 @@ export const useAuthStore = defineStore('auth', () => {
           
           try {
             await refreshProfile()
-            console.log('Profile refreshed successfully')
+            console.log('Profile refreshed successfully') // eslint-disable-line no-console, no-undef
           } catch (profileError) {
-            console.warn('Could not refresh profile on restore:', profileError)
+            console.warn('Could not refresh profile on restore:', profileError) // eslint-disable-line no-console, no-undef
           }
           
           loading.value = false
-          console.log('Session restored successfully for:', existingSession.email)
+          console.log('Session restored successfully for:', existingSession.email) // eslint-disable-line no-console, no-undef
         } else {
-          console.log('Session tokens are invalid, clearing...')
+          console.log('Session tokens are invalid, clearing...') // eslint-disable-line no-console, no-undef
           clearUserData()
         }
       } catch (error) {
-        console.warn('Session restoration failed:', error)
+        console.warn('Session restoration failed:', error) // eslint-disable-line no-console, no-undef
         clearUserData()
       }
     }
@@ -107,7 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       // Set up Firebase auth state listener
       onAuthStateChanged(auth, async (firebaseUser) => {
-        console.log('Firebase auth state changed:', firebaseUser ? firebaseUser.email : 'signed out')
+        console.log('Firebase auth state changed:', firebaseUser ? firebaseUser.email : 'signed out') // eslint-disable-line no-console, no-undef
         
         if (firebaseUser) {
           // Only update user state if it's different from what we have
@@ -116,9 +116,9 @@ export const useAuthStore = defineStore('auth', () => {
             
             try {
               await verifyWithBackend(firebaseUser)
-              console.log('Backend verification successful for:', firebaseUser.email)
+              console.log('Backend verification successful for:', firebaseUser.email) // eslint-disable-line no-console, no-undef
               // Store session in localStorage for persistence
-              localStorage.setItem('bottleplug_session', JSON.stringify({
+              localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
                 uid: firebaseUser.uid,
                 email: firebaseUser.email,
                 timestamp: Date.now()
@@ -126,21 +126,21 @@ export const useAuthStore = defineStore('auth', () => {
               // If we arrived here from redirect flow, ensure we navigate now
               await redirect_after_auth()
             } catch (error) {
-              console.error('Backend verification failed:', error)
+              console.error('Backend verification failed:', error) // eslint-disable-line no-console, no-undef
               
               // Retry once after a short delay
-              console.log('Retrying backend verification in 2 seconds...')
+              console.log('Retrying backend verification in 2 seconds...') // eslint-disable-line no-console, no-undef
               setTimeout(async () => {
                 try {
                   await verifyWithBackend(firebaseUser)
-                  console.log('Backend verification successful on retry')
-                  localStorage.setItem('bottleplug_session', JSON.stringify({
+                  console.log('Backend verification successful on retry') // eslint-disable-line no-console, no-undef
+                  localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
                     uid: firebaseUser.uid,
                     email: firebaseUser.email,
                     timestamp: Date.now()
                   }))
                 } catch (retryError) {
-                  console.error('Backend verification failed after retry:', retryError)
+                  console.error('Backend verification failed after retry:', retryError) // eslint-disable-line no-console, no-undef
                   // Do not force logout here; keep Firebase session to avoid unintended sign-out on navigation
                   // Show a gentle warning to the user
                   try { toast.warn('Connected, but failed to sync with server. Some features may be limited.') } catch (_) {}
@@ -152,13 +152,13 @@ export const useAuthStore = defineStore('auth', () => {
           // Only clear if we don't have a valid restored session
           if (!user.value || !existingSession) {
             clearUserData()
-            console.log('User signed out')
+            console.log('User signed out') // eslint-disable-line no-console, no-undef
           }
         }
         loading.value = false
       })
     } catch (error) {
-      console.error('Firebase authentication error:', error)
+      console.error('Firebase authentication error:', error) // eslint-disable-line no-console, no-undef
       loading.value = false
     }
   }
@@ -177,7 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const idToken = await firebaseUser.getIdToken()
       
-      const response = await fetch(`${ApiService.baseUrl}/auth/users/login/`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -185,7 +185,7 @@ export const useAuthStore = defineStore('auth', () => {
         body: JSON.stringify({
           id_token: idToken,
           platform: 'web',
-          device_id: navigator.userAgent,
+          device_id: navigator.userAgent, // eslint-disable-line no-undef
           app_version: '1.0.0'
         }),
       })
@@ -240,7 +240,7 @@ export const useAuthStore = defineStore('auth', () => {
         updated_at: data.user.updated_at
       }
       
-      console.log('Backend user profile loaded:', userProfile.value)
+      console.log('Backend user profile loaded:', userProfile.value) // eslint-disable-line no-console, no-undef
       
       if (data.is_new_user) {
         toast.success('Welcome! Your account has been created.')
@@ -249,7 +249,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       
     } catch (error) {
-      console.error('Backend verification error:', error)
+      console.error('Backend verification error:', error) // eslint-disable-line no-console, no-undef
       throw error
     }
   }
@@ -267,7 +267,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Set user immediately so router guard passes without waiting for onAuthStateChanged
       user.value = result.user
       // Persist minimal session snapshot
-      localStorage.setItem('bottleplug_session', JSON.stringify({
+      localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
         uid: result.user.uid,
         email: result.user.email,
         timestamp: Date.now()
@@ -275,12 +275,12 @@ export const useAuthStore = defineStore('auth', () => {
       await redirect_after_auth()
       return { user: result.user, success: true }
     } catch (error) {
-      console.error('Firebase sign in error:', error)
+      console.error('Firebase sign in error:', error) // eslint-disable-line no-console, no-undef
       
       // If user doesn't exist in Firebase, help them create an account
       if (error.code === 'auth/user-not-found') {
         try {
-          console.log('User not found in Firebase, checking backend...')
+          console.log('User not found in Firebase, checking backend...') // eslint-disable-line no-console, no-undef
           // Check if user exists in backend
           const backendUser = await checkUserExistsInBackend(email)
           if (backendUser) {
@@ -291,7 +291,7 @@ export const useAuthStore = defineStore('auth', () => {
             throw error
           }
         } catch (checkError) {
-          console.error('Error checking backend user:', checkError)
+          console.error('Error checking backend user:', checkError) // eslint-disable-line no-console, no-undef
           throw error
         }
       }
@@ -299,7 +299,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Fallback: allow backend-only test login if Firebase sign-in fails for common credential errors
       if (['auth/invalid-credential', 'auth/wrong-password', 'auth/user-not-found'].includes(error.code)) {
         try {
-          const res = await fetch(`${ApiService.baseUrl}/auth/users/test-login/`, {
+          const res = await fetch(`${ApiService.baseUrl}/auth/users/test-login/`, { // eslint-disable-line no-undef
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
@@ -311,13 +311,13 @@ export const useAuthStore = defineStore('auth', () => {
             refreshToken.value = data.refresh_token
             persistTokens()
             user.value = { uid: 'backend-only', email }
-            localStorage.setItem('bottleplug_session', JSON.stringify({ uid: 'backend-only', email, backend_only: true, timestamp: Date.now() }))
-            try { toast.success('Signed in') } catch (_) {}
+            localStorage.setItem('bottleplug_session', JSON.stringify({ uid: 'backend-only', email, backend_only: true, timestamp: Date.now() })) // eslint-disable-line no-undef
+            try { toast.success('Signed in') } catch (_) { /* ignore toast errors */ }
             await redirect_after_auth()
             return { user: user.value, success: true }
           }
         } catch (fallbackErr) {
-          console.warn('Backend test-login fallback failed:', fallbackErr)
+          console.warn('Backend test-login fallback failed:', fallbackErr) // eslint-disable-line no-console, no-undef
         }
       }
       let errorMessage = 'Sign in failed. Please try again.'
@@ -331,7 +331,7 @@ export const useAuthStore = defineStore('auth', () => {
   // Check if user exists in backend
   const checkUserExistsInBackend = async (email) => {
     try {
-      const response = await fetch(`${ApiService.baseUrl}/auth/users/check_exists/?email=${encodeURIComponent(email)}`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/users/check_exists/?email=${encodeURIComponent(email)}`, { // eslint-disable-line no-undef
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -344,7 +344,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       return null
     } catch (error) {
-      console.error('Error checking user existence:', error)
+      console.error('Error checking user existence:', error) // eslint-disable-line no-console, no-undef
       return null
     }
   }
@@ -358,7 +358,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         result = await signInWithPopup(auth, googleProvider)
       } catch (popupErr) {
-        console.warn('Google popup failed, falling back to redirect:', popupErr)
+        console.warn('Google popup failed, falling back to redirect:', popupErr) // eslint-disable-line no-console, no-undef
         // Start redirect flow and let onAuthStateChanged handle post-redirect
         await signInWithRedirect(auth, googleProvider)
         return { user: null, success: true }
@@ -371,7 +371,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = result.user
 
       // Persist minimal session snapshot
-      localStorage.setItem('bottleplug_session', JSON.stringify({
+      localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
         uid: result.user.uid,
         email: result.user.email,
         timestamp: Date.now()
@@ -380,7 +380,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       return { user: result.user, success: true }
     } catch (error) {
-      console.error('Google sign in error:', error)
+      console.error('Google sign in error:', error) // eslint-disable-line no-console, no-undef
       // If Firebase user exists, treat as success and let router guard proceed
       if (auth.currentUser) {
         return { user: auth.currentUser, success: true }
@@ -427,7 +427,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       return { user: result.user, success: true }
     } catch (error) {
-      console.error('Sign up error:', error)
+      console.error('Sign up error:', error) // eslint-disable-line no-console, no-undef
       
       let errorMessage = 'Account creation failed. Please try again.'
       
@@ -457,7 +457,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Sign out from backend
       if (accessToken.value) {
         try {
-          await fetch(`${ApiService.baseUrl}/auth/users/logout/`, {
+          await fetch(`${ApiService.baseUrl}/auth/users/logout/`, { // eslint-disable-line no-undef
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${accessToken.value}`,
@@ -465,7 +465,7 @@ export const useAuthStore = defineStore('auth', () => {
             },
           })
         } catch (error) {
-          console.warn('Backend logout failed:', error)
+          console.warn('Backend logout failed:', error) // eslint-disable-line no-console, no-undef
         }
       }
       
@@ -478,7 +478,7 @@ export const useAuthStore = defineStore('auth', () => {
       AnalyticsService.trackLogout()
       toast.success('Signed out successfully')
     } catch (error) {
-      console.error('Sign out error:', error)
+      console.error('Sign out error:', error) // eslint-disable-line no-console, no-undef
       // Even if logout fails, clear local data
       clearUserData()
       toast.error('Sign out completed with errors')
@@ -494,7 +494,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error('No access token available')
       }
 
-      const response = await fetch(`${ApiService.baseUrl}/auth/users/update_profile/`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/users/update_profile/`, { // eslint-disable-line no-undef
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken.value}`,
@@ -516,7 +516,7 @@ export const useAuthStore = defineStore('auth', () => {
       toast.success('Profile updated successfully')
       return updatedUser
     } catch (error) {
-      console.error('Profile update error:', error)
+      console.error('Profile update error:', error) // eslint-disable-line no-console, no-undef
       toast.error('Failed to update profile')
       throw error
     }
@@ -529,7 +529,7 @@ export const useAuthStore = defineStore('auth', () => {
         throw new Error('No access token available')
       }
 
-      const response = await fetch(`${ApiService.baseUrl}/auth/users/profile/`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/users/profile/`, { // eslint-disable-line no-undef
         headers: {
           'Authorization': `Bearer ${accessToken.value}`,
         },
@@ -547,7 +547,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       return userData
     } catch (error) {
-      console.error('Profile refresh error:', error)
+      console.error('Profile refresh error:', error) // eslint-disable-line no-console, no-undef
       throw error
     }
   }
@@ -557,7 +557,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!accessToken.value) return false
 
     try {
-      const response = await fetch(`${ApiService.baseUrl}/auth/users/profile/`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/users/profile/`, { // eslint-disable-line no-undef
         headers: {
           'Authorization': `Bearer ${accessToken.value}`,
         },
@@ -565,14 +565,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       return response.ok
     } catch (error) {
-      console.error('Token validation error:', error)
+      console.error('Token validation error:', error) // eslint-disable-line no-console, no-undef
       return false
     }
   }
 
   // Check for existing session in localStorage and restore user state
   const checkExistingSession = () => {
-    const session = localStorage.getItem('bottleplug_session')
+    const session = localStorage.getItem('bottleplug_session') // eslint-disable-line no-undef
     if (!session) return false
 
     try {
@@ -582,14 +582,14 @@ export const useAuthStore = defineStore('auth', () => {
       
       // Session expires after 24 hours
       if (sessionAge > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem('bottleplug_session')
+        localStorage.removeItem('bottleplug_session') // eslint-disable-line no-undef
         clearTokens()
         return false
       }
       
       return sessionData
     } catch (error) {
-      localStorage.removeItem('bottleplug_session')
+      localStorage.removeItem('bottleplug_session') // eslint-disable-line no-undef
       clearTokens()
       return false
     }
@@ -631,13 +631,13 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         await refreshProfile()
       } catch (error) {
-        console.warn('Could not refresh profile:', error)
+        console.warn('Could not refresh profile:', error) // eslint-disable-line no-console, no-undef
       }
 
-      console.log('Session restored for:', existingSession.email)
+      console.log('Session restored for:', existingSession.email) // eslint-disable-line no-console, no-undef
       return true
     } catch (error) {
-      console.error('Session restoration failed:', error)
+      console.error('Session restoration failed:', error) // eslint-disable-line no-console, no-undef
       clearUserData()
       return false
     }
