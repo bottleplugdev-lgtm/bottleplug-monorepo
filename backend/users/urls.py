@@ -4,7 +4,11 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet)
+router.register(r'drivers', views.DriverViewSet, basename='driver')
+router.register(r'sessions', views.UserSessionViewSet, basename='session')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('login/', views.FirebaseLoginView.as_view(), name='firebase-login'),
+    # Add other endpoints as needed
 ]
