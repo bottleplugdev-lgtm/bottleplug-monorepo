@@ -18,49 +18,64 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
     def authenticate(self, request):
         # Get the Firebase token from the Authorization header
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        platform = request.META.get('HTTP_X_PLATFORM', 'unknown')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+        app_version = request.META.get('HTTP_X_APP_VERSION', 'unknown')
+        
+        # Enhanced debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[{platform.upper()}] Firebase auth attempt - Header: {auth_header[:50]}... User-Agent: {user_agent[:100]}... App-Version: {app_version}")
         
         if not auth_header.startswith('Bearer '):
+            logger.warning(f"[{platform.upper()}] No Bearer token found in Authorization header")
             return None
         
         token = auth_header.split('Bearer ')[1]
         
         if not token:
+            logger.warning(f"[{platform.upper()}] Empty token after Bearer prefix")
             return None
         
-        # Firebase tokens are JWT tokens that start with 'eyJ'
-        # We need to verify them using Firebase Admin SDK
-        # Don't skip any tokens - let Firebase verification determine validity
+        # Validate token format (Firebase tokens are JWT tokens that start with 'eyJ')
+        if not token.startswith('eyJ'):
+            logger.warning(f"[{platform.upper()}] Invalid token format - doesn't start with 'eyJ'. Token: {token[:20]}...")
+            return None
         
-        # Debug logging
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.info(f"Firebase authentication attempt with token: {token[:20]}... (length: {len(token)})")
+        logger.info(f"[{platform.upper()}] Token format valid - Length: {len(token)}, Starts with: {token[:20]}...")
         
         try:
             # Firebase should already be initialized in settings.py
             # No need to re-initialize here
             
             # Verify the Firebase token
+            logger.info(f"[{platform.upper()}] Attempting Firebase token verification...")
             decoded_token = auth.verify_id_token(token)
             firebase_uid = decoded_token['uid']
             firebase_email = decoded_token.get('email', '')
+            is_anonymous = decoded_token.get('firebase', {}).get('sign_in_provider') == 'anonymous'
+            
+            logger.info(f"[{platform.upper()}] Token verified successfully - UID: {firebase_uid}, Email: {firebase_email}, Anonymous: {is_anonymous}")
             
             # Get or create user
+            logger.info(f"[{platform.upper()}] Attempting user lookup/creation...")
             user, created = self._get_or_create_user(decoded_token)
             
-            # Debug logging
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.info(f"Firebase authentication successful for user: {user.username} (type: {user.user_type})")
+            logger.info(f"[{platform.upper()}] User {'created' if created else 'found'}: {user.username} (ID: {user.id}, Type: {getattr(user, 'user_type', 'unknown')})")
             
             return (user, None)
             
         except Exception as e:
+            # Enhanced error logging with specific error types
+            logger.error(f"[{platform.upper()}] Firebase authentication failed - Error: {str(e)}")
+            logger.error(f"[{platform.upper()}] Error type: {type(e).__name__}")
+            
+            # Log specific Firebase errors
+            if hasattr(e, 'code'):
+                logger.error(f"[{platform.upper()}] Firebase error code: {e.code}")
+            
             # Don't raise an exception - let other authentication classes try
             # This prevents Firebase auth from blocking JWT auth
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.warning(f"Firebase authentication failed: {str(e)}")
             return None
     
     def _get_or_create_user(self, decoded_token):

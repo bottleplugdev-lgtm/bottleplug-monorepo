@@ -181,10 +181,11 @@ WEB_API_TOKEN = config('WEB_API_TOKEN', default='bottleplug-web-token-2024')
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'users.authentication.FirebaseAuthentication',
-        'users.web_auth.WebTokenAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'users.mobile_auth.MobileFirebaseAuthentication',      # Mobile-optimized Firebase auth (first priority)
+        'users.authentication.FirebaseAuthentication',          # General Firebase auth (fallback)
+        'users.web_auth.WebTokenAuthentication',                # Web token auth (anonymous access)
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # JWT auth (alternative)
+        'rest_framework.authentication.SessionAuthentication',  # Session auth (admin/dashboard)
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

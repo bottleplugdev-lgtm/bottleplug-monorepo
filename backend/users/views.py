@@ -1,12 +1,15 @@
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
+from django.utils import timezone
 import base64
 import uuid
+import logging
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 import firebase_admin
@@ -263,3 +266,117 @@ class UserSessionViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()  # Placeholder
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+@swagger_auto_schema(
+    tags=['auth'],
+    operation_description="Debug endpoint for mobile authentication testing",
+    operation_summary="Mobile Auth Debug",
+    methods=['post'],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'test_mode': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Enable test mode'),
+        }
+    )
+)
+@api_view(['POST', 'GET'])
+@permission_classes([AllowAny])
+def debug_mobile_auth(request):
+    """
+    Debug endpoint for mobile authentication testing.
+    This endpoint helps diagnose authentication issues with mobile apps.
+    """
+    logger = logging.getLogger(__name__)
+    
+    # Get request information
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    platform = request.META.get('HTTP_X_PLATFORM', 'unknown')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    app_version = request.META.get('HTTP_X_APP_VERSION', 'unknown')
+    device_id = request.META.get('HTTP_X_DEVICE_ID', 'unknown')
+    
+    # Extract token info
+    has_bearer = auth_header.startswith('Bearer ')
+    token = auth_header.split('Bearer ')[1] if has_bearer else ''
+    token_length = len(token)
+    token_format_valid = token.startswith('eyJ') if token else False
+    
+    # Try to verify token if present
+    token_verification = None
+    user_info = None
+    
+    if token and has_bearer:
+        try:
+            decoded_token = firebase_auth.verify_id_token(token)
+            token_verification = {
+                'valid': True,
+                'uid': decoded_token.get('uid'),
+                'email': decoded_token.get('email'),
+                'anonymous': decoded_token.get('firebase', {}).get('sign_in_provider') == 'anonymous',
+                'auth_time': decoded_token.get('auth_time'),
+                'exp': decoded_token.get('exp'),
+            }
+            
+            # Try to find user
+            try:
+                user = User.objects.get(firebase_uid=decoded_token['uid'])
+                user_info = {
+                    'exists': True,
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'user_type': getattr(user, 'user_type', 'unknown'),
+                    'is_active': user.is_active,
+                    'is_mobile_user': getattr(user, 'is_mobile_user', False),
+                }
+            except User.DoesNotExist:
+                user_info = {'exists': False}
+                
+        except Exception as e:
+            token_verification = {
+                'valid': False,
+                'error': str(e),
+                'error_type': type(e).__name__
+            }
+    
+    # Log the debug request
+    logger.info(f"[DEBUG] Mobile auth debug request from {platform}")
+    logger.info(f"[DEBUG] Auth header present: {bool(auth_header)}")
+    logger.info(f"[DEBUG] Token length: {token_length}")
+    logger.info(f"[DEBUG] Token valid: {token_verification.get('valid', False) if token_verification else False}")
+    
+    response_data = {
+        'timestamp': timezone.now().isoformat(),
+        'request_info': {
+            'platform': platform,
+            'app_version': app_version,
+            'device_id': device_id,
+            'user_agent': user_agent[:200],  # Truncate for readability
+        },
+        'auth_header': {
+            'present': bool(auth_header),
+            'has_bearer': has_bearer,
+            'token_length': token_length,
+            'token_format_valid': token_format_valid,
+        },
+        'token_verification': token_verification,
+        'user_info': user_info,
+        'authentication_classes': [
+            'users.mobile_auth.MobileFirebaseAuthentication',
+            'users.authentication.FirebaseAuthentication',
+            'users.web_auth.WebTokenAuthentication',
+            'rest_framework_simplejwt.authentication.JWTAuthentication',
+        ],
+        'debugging_tips': [
+            'Ensure your mobile app sends Authorization: Bearer <firebase_token>',
+            'Include X-Platform header (mobile, android, ios)',
+            'Include X-App-Version header',
+            'Include X-Device-ID header',
+            'Make sure Firebase token is fresh (not expired)',
+            'Check that user exists in backend database',
+            'Verify Firebase project configuration matches backend',
+        ]
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)

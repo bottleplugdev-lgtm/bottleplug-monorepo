@@ -10,5 +10,6 @@ router.register(r'sessions', views.UserSessionViewSet, basename='session')
 urlpatterns = [
     path('', include(router.urls)),
     path('login/', views.FirebaseLoginView.as_view(), name='firebase-login'),
+    path('debug-mobile-auth/', views.debug_mobile_auth, name='debug-mobile-auth'),
     # Add other endpoints as needed
 ]
