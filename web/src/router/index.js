@@ -22,7 +22,8 @@ const routes = [
 	{ path: '/invoices', name: 'invoices', component: () => import('../views/Invoices.vue'), meta: { requires_auth: true } },
 	{ path: '/payments', name: 'payments', component: () => import('../views/PaymentHistory.vue'), meta: { requires_auth: true } },
 	{ path: '/profile', name: 'profile', component: () => import('../views/Profile.vue'), meta: { requires_auth: true } },
-	{ path: '/support', name: 'support', component: () => import('../views/Support.vue') }
+	{ path: '/support', name: 'support', component: () => import('../views/Support.vue') },
+	{ path: '/privacy', name: 'privacy', component: () => import('../views/PrivacyPolicy.vue') }
 ]
 
 const router = createRouter({
