@@ -211,7 +211,7 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { set_seo } from '../utils/seo'
+import { set_seo } from '../lib/seo'
 
 const lastUpdated = 'December 2024'
 
