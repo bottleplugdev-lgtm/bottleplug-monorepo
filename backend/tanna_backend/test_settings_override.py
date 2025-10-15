@@ -1,4 +1,5 @@
 # Test settings that completely override Firebase initialization
+# DO NOT IMPORT MAIN SETTINGS - This prevents Firebase initialization
 import os
 import sys
 from pathlib import Path
