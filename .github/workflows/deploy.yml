@@ -12,14 +12,15 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
@@ -28,30 +29,23 @@ jobs:
         cache-dependency-path: |
           web/package-lock.json
           dashboard/package-lock.json
-    
+
     - name: Install Python dependencies
       run: |
         cd backend
         pip install -r requirements.txt
-    
+
     - name: Install Frontend dependencies
       run: |
         cd web && npm ci
         cd ../dashboard && npm ci
-    
-    - name: Set up test environment
-      run: |
-        cd backend
-        cp env.example .env.test
-        echo "DEBUG=True" >> .env.test
-        echo "SECRET_KEY=test-secret-key-for-github-actions" >> .env.test
-        echo "DATABASE_URL=sqlite:///test.db" >> .env.test
-        echo "ALLOWED_HOSTS=localhost,127.0.0.1" >> .env.test
-    
+
     - name: Run Python tests
       run: |
         cd backend
-        python manage.py test --verbosity=1 --keepdb --failfast
+        python manage.py test --verbosity=1 --settings=tanna_backend.test_settings
+      env:
+        DJANGO_SETTINGS_MODULE: tanna_backend.test_settings
     
     - name: Run Frontend tests
       run: |
