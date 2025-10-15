@@ -10,9 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='user',
-            name='firebase_uid',
-            field=models.CharField(blank=True, max_length=128, null=True, unique=True),
-        ),
+        # firebase_uid field already exists in 0001_initial.py, so this migration is not needed
+        # Keeping empty operations to maintain migration history
     ]
