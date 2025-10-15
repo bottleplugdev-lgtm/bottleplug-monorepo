@@ -6,23 +6,9 @@ import os
 DEBUG = True
 SECRET_KEY = 'test-secret-key-for-github-actions'
 
-# Use in-memory database for faster tests
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-}
-
-# Disable migrations for faster tests
-class DisableMigrations:
-    def __contains__(self, item):
-        return True
-    
-    def __getitem__(self, item):
-        return None
-
-MIGRATION_MODULES = DisableMigrations()
+# Use PostgreSQL for tests (same as production)
+# Database configuration will come from environment variables
+# This ensures we test with the same database type as production
 
 # Disable logging during tests
 LOGGING = {

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'expenses',
     'email_newsletter',
     'contact_form',
+    'notifications',
     'push_notifications',
     'mobile_api',
     'payments',
