@@ -257,9 +257,10 @@ class FlutterwaveService:
                     'error': f"Validation failed: {', '.join(validation_errors)}"
                 }
             
-            # Real API call when secret key is available
+            # Real API call using v4 endpoint
+            # v4 uses /charges endpoint for payment creation
             response = requests.post(
-                f'{self.base_url}/payments',
+                f'{self.base_url}/charges',
                 headers=headers,
                 json=compatible_payload,
                 timeout=30
@@ -326,8 +327,9 @@ class FlutterwaveService:
                 include_trace=True
             )
             
+            # v4 uses /charges/{id} endpoint for verification
             response = requests.get(
-                f'{self.base_url}/transactions/{transaction_id}/verify',
+                f'{self.base_url}/charges/{transaction_id}',
                 headers=headers,
                 timeout=30
             )

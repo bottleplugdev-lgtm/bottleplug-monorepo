@@ -39,7 +39,7 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,ecommerce-web,dashboard
+      - ALLOWED_HOSTS=*
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8080,http://ecommerce-web,http://dashboard
     volumes:
       - ./backend:/app

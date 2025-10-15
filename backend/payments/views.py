@@ -11,11 +11,12 @@ from drf_yasg import openapi
 import uuid
 
 from .models import (
-    PaymentMethod, PaymentTransaction, PaymentWebhook, 
+    PaymentMethod, UserPaymentMethod, PaymentTransaction, PaymentWebhook,
     PaymentRefund, PaymentPlan, PaymentSubscription
 )
 from .serializers import (
-    PaymentMethodSerializer, PaymentTransactionSerializer, PaymentTransactionDetailSerializer,
+    PaymentMethodSerializer, UserPaymentMethodSerializer, UserPaymentMethodCreateSerializer,
+    PaymentTransactionSerializer, PaymentTransactionDetailSerializer,
     PaymentTransactionCreateSerializer, PaymentWebhookSerializer as WebhookModelSerializer,
     PaymentRefundSerializer, PaymentRefundCreateSerializer, PaymentPlanSerializer,
     PaymentSubscriptionSerializer, PaymentSubscriptionCreateSerializer,
@@ -56,6 +57,82 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
         country = request.query_params.get('country', 'NG')
         methods = self.queryset.filter(country_code=country)
         serializer = self.get_serializer(methods, many=True)
+        return Response(serializer.data)
+
+
+class UserPaymentMethodViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for user's saved payment methods
+    """
+    serializer_class = UserPaymentMethodSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [
+        FirebaseAuthentication,
+        SessionAuthentication,
+    ]
+
+    def get_queryset(self):
+        """Return only the authenticated user's payment methods"""
+        if getattr(self, 'swagger_fake_view', False):
+            return UserPaymentMethod.objects.none()
+        return UserPaymentMethod.objects.filter(user=self.request.user, is_active=True)
+
+    def get_serializer_class(self):
+        """Use different serializers for different actions"""
+        if self.action == 'create':
+            return UserPaymentMethodCreateSerializer
+        return UserPaymentMethodSerializer
+
+    @swagger_auto_schema(tags=['payments'])
+    def list(self, request, *args, **kwargs):
+        """List user's saved payment methods"""
+        return super().list(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['payments'])
+    def create(self, request, *args, **kwargs):
+        """Save a new payment method for the user"""
+        return super().create(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['payments'])
+    def retrieve(self, request, *args, **kwargs):
+        """Get details of a specific saved payment method"""
+        return super().retrieve(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['payments'])
+    def update(self, request, *args, **kwargs):
+        """Update a saved payment method"""
+        return super().update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['payments'])
+    def partial_update(self, request, *args, **kwargs):
+        """Partially update a saved payment method"""
+        return super().partial_update(request, *args, **kwargs)
+
+    @swagger_auto_schema(tags=['payments'])
+    def destroy(self, request, *args, **kwargs):
+        """Delete a saved payment method"""
+        return super().destroy(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        tags=['payments'],
+        operation_description="Set a payment method as default"
+    )
+    @action(detail=True, methods=['post'])
+    def set_default(self, request, pk=None):
+        """Set this payment method as the user's default"""
+        payment_method = self.get_object()
+
+        # Remove default from all other payment methods for this user
+        UserPaymentMethod.objects.filter(
+            user=request.user,
+            is_default=True
+        ).update(is_default=False)
+
+        # Set this one as default
+        payment_method.is_default = True
+        payment_method.save()
+
+        serializer = self.get_serializer(payment_method)
         return Response(serializer.data)
 
 

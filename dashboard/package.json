@@ -5,9 +5,15 @@
   "type": "module",
   "description": "BottlePlug - Alcohol and Beverages Management Dashboard",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "vite --mode development",
+    "dev:local": "vite --mode development",
+    "dev:prod": "vite --mode production",
+    "build": "vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
     "preview": "vite preview",
+    "preview:dev": "vite preview --mode development",
+    "preview:prod": "vite preview --mode production",
     "lint": "eslint src --fix",
     "format": "prettier --write src/"
   },

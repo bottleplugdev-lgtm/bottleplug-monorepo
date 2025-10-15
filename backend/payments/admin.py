@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    PaymentMethod, PaymentTransaction, PaymentWebhook, 
+    PaymentMethod, UserPaymentMethod, PaymentTransaction, PaymentWebhook,
     PaymentRefund, PaymentPlan, PaymentSubscription, PaymentReceipt
 )
 
@@ -12,6 +12,25 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     search_fields = ['name', 'flutterwave_code']
     readonly_fields = ['created_at', 'updated_at']
     ordering = ['name']
+
+
+@admin.register(UserPaymentMethod)
+class UserPaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ['user', 'nickname', 'method_type', 'is_default', 'is_active', 'created_at', 'last_used_at']
+    list_filter = ['method_type', 'is_default', 'is_active', 'created_at']
+    search_fields = ['user__email', 'user__first_name', 'user__last_name', 'nickname']
+    readonly_fields = ['created_at', 'updated_at', 'last_used_at']
+    ordering = ['-created_at']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user')
+
+    def has_change_permission(self, request, obj=None):
+        # Allow admins to view but be careful with editing sensitive payment data
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
 
 
 @admin.register(PaymentTransaction)

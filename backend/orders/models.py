@@ -689,18 +689,209 @@ class CartItem(models.Model):
 
 class Wishlist(models.Model):
     """
-    User wishlist
+    Enhanced User wishlist with notification preferences
     """
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='wishlist')
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE)
+
+    # Notification preferences
+    price_drop_alerts = models.BooleanField(default=True)
+    stock_alerts = models.BooleanField(default=True)
+    target_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Price tracking
+    original_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    last_notified_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Stock tracking
+    was_in_stock = models.BooleanField(default=True)
+    last_stock_check = models.DateTimeField(auto_now=True)
+
     created_at = models.DateTimeField(default=timezone.now)
-    
+    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
         db_table = 'wishlist'
         unique_together = ['user', 'product']
-    
+
     def __str__(self):
         return f"{self.user.email} - {self.product.name}"
+
+    @property
+    def current_price(self):
+        """Get current product price"""
+        return self.product.current_price
+
+    @property
+    def has_price_drop(self):
+        """Check if price has dropped since last check"""
+        if not self.original_price:
+            return False
+        return self.current_price < self.original_price
+
+    @property
+    def price_drop_percentage(self):
+        """Calculate price drop percentage"""
+        if not self.original_price or self.original_price == 0:
+            return 0
+        return ((self.original_price - self.current_price) / self.original_price) * 100
+
+    @property
+    def is_target_price_met(self):
+        """Check if target price is met"""
+        if not self.target_price:
+            return False
+        return self.current_price <= self.target_price
+
+    @property
+    def should_trigger_price_alert(self):
+        """Check if price alert should be triggered"""
+        if not self.price_drop_alerts:
+            return False
+
+        # Alert if price dropped or target price met
+        return (self.has_price_drop and
+                self.current_price != self.last_notified_price) or self.is_target_price_met
+
+    @property
+    def should_trigger_stock_alert(self):
+        """Check if stock alert should be triggered"""
+        if not self.stock_alerts:
+            return False
+
+        # Alert if product came back in stock
+        return not self.was_in_stock and self.product.is_available
+
+    def update_price_tracking(self):
+        """Update price tracking fields"""
+        current_price = self.current_price
+        if not self.original_price:
+            self.original_price = current_price
+        self.last_notified_price = current_price
+        self.save()
+
+    def update_stock_tracking(self):
+        """Update stock tracking fields"""
+        self.was_in_stock = self.product.is_available
+        self.last_stock_check = timezone.now()
+        self.save()
+
+
+class PreOrder(models.Model):
+    """
+    Pre-order system for out-of-stock items
+    """
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('fulfilled', 'Fulfilled'),
+        ('cancelled', 'Cancelled'),
+        ('expired', 'Expired'),
+    ]
+
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='pre_orders')
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, related_name='pre_orders')
+    quantity = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+
+    # Pricing
+    reserved_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price_locked = models.BooleanField(default=False)
+
+    # Notifications
+    notify_when_available = models.BooleanField(default=True)
+    notification_sent = models.BooleanField(default=False)
+
+    # Timing
+    expires_at = models.DateTimeField(null=True, blank=True)  # Auto-cancel after this date
+    expected_availability = models.DateTimeField(null=True, blank=True)
+
+    # Contact preferences
+    email_notifications = models.BooleanField(default=True)
+    sms_notifications = models.BooleanField(default=False)
+
+    # Metadata
+    notes = models.TextField(blank=True, null=True)
+    priority = models.IntegerField(default=0)  # Higher number = higher priority
+
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    fulfilled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'pre_orders'
+        ordering = ['-priority', '-created_at']
+        indexes = [
+            models.Index(fields=['status', 'product']),
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['expires_at']),
+        ]
+
+    def __str__(self):
+        return f"PreOrder #{self.id} - {self.user.email} - {self.product.name}"
+
+    @property
+    def is_expired(self):
+        """Check if pre-order has expired"""
+        if not self.expires_at:
+            return False
+        return timezone.now() > self.expires_at
+
+    @property
+    def can_be_fulfilled(self):
+        """Check if pre-order can be fulfilled"""
+        return (self.status == 'pending' and
+                self.product.is_available and
+                self.product.stock >= self.quantity and
+                not self.is_expired)
+
+    def set_expiry(self, days=30):
+        """Set expiry date for pre-order"""
+        self.expires_at = timezone.now() + timezone.timedelta(days=days)
+        self.save()
+
+    def lock_price(self):
+        """Lock current product price for this pre-order"""
+        self.reserved_price = self.product.current_price
+        self.price_locked = True
+        self.save()
+
+    def fulfill(self):
+        """Mark pre-order as fulfilled"""
+        if self.can_be_fulfilled:
+            self.status = 'fulfilled'
+            self.fulfilled_at = timezone.now()
+            self.save()
+            return True
+        return False
+
+    def cancel(self, reason=None):
+        """Cancel pre-order"""
+        self.status = 'cancelled'
+        if reason:
+            self.notes = f"{self.notes}\nCancelled: {reason}" if self.notes else f"Cancelled: {reason}"
+        self.save()
+
+    def send_availability_notification(self):
+        """Send notification when product becomes available"""
+        if self.notify_when_available and not self.notification_sent:
+            from notifications.services import NotificationService
+
+            NotificationService.notify_user(
+                self.user.id,
+                f"{self.product.name} is now available!",
+                f"Your pre-ordered item is back in stock. Quantity: {self.quantity}",
+                'stock_alert',
+                {
+                    'pre_order_id': self.id,
+                    'product_id': self.product.id,
+                    'quantity': self.quantity,
+                    'action': 'complete_pre_order'
+                }
+            )
+
+            self.notification_sent = True
+            self.save()
 
 
 class Review(models.Model):

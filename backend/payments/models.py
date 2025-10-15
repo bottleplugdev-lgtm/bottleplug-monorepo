@@ -26,7 +26,7 @@ class PaymentMethod(models.Model):
         ('payattitude', 'PayAttitude'),
         ('cash', 'Cash Payment'),
     ]
-    
+
     name = models.CharField(max_length=100)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPES)
     is_active = models.BooleanField(default=True)
@@ -34,21 +34,93 @@ class PaymentMethod(models.Model):
     max_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     processing_fee = models.DecimalField(max_digits=5, decimal_places=2, default=0)  # Percentage
     fixed_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+
     # Flutterwave specific
     flutterwave_code = models.CharField(max_length=50, unique=True)
-    country_code = models.CharField(max_length=3, default='NG')
-    currency = models.CharField(max_length=3, default='NGN')
-    
+    country_code = models.CharField(max_length=3, default='UG')
+    currency = models.CharField(max_length=3, default='UGX')
+
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         db_table = 'payment_methods'
         ordering = ['name']
-    
+
     def __str__(self):
         return f"{self.name} ({self.get_payment_type_display()})"
+
+
+class UserPaymentMethod(models.Model):
+    """
+    User's saved payment methods for future use
+    """
+    PAYMENT_TYPES = [
+        ('card', 'Credit/Debit Card'),
+        ('mobile_money', 'Mobile Money'),
+        ('bank', 'Bank Transfer'),
+        ('wallet', 'BottlePlug Wallet'),
+    ]
+
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='saved_payment_methods')
+    nickname = models.CharField(max_length=100, help_text="User-friendly name for this payment method")
+    method_type = models.CharField(max_length=20, choices=PAYMENT_TYPES)
+    method_data = models.JSONField(help_text="Encrypted payment method details")
+    is_default = models.BooleanField(default=False, help_text="Whether this is the user's default payment method")
+    is_active = models.BooleanField(default=True, help_text="Whether this payment method is active")
+
+    # Timestamps
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_used_at = models.DateTimeField(null=True, blank=True, help_text="When this payment method was last used")
+
+    class Meta:
+        db_table = 'user_payment_methods'
+        ordering = ['-is_default', '-last_used_at', '-created_at']
+        unique_together = ['user', 'nickname']  # Ensure unique nicknames per user
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+            models.Index(fields=['user', 'is_default']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} - {self.nickname} ({self.get_method_type_display()})"
+
+    def save(self, *args, **kwargs):
+        # Ensure only one default payment method per user
+        if self.is_default:
+            UserPaymentMethod.objects.filter(
+                user=self.user,
+                is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
+
+        super().save(*args, **kwargs)
+
+    def mark_as_used(self):
+        """Mark this payment method as recently used"""
+        self.last_used_at = timezone.now()
+        self.save(update_fields=['last_used_at'])
+
+    def get_display_info(self):
+        """Get safe display information for this payment method"""
+        display_info = {
+            'id': self.id,
+            'nickname': self.nickname,
+            'method_type': self.method_type,
+            'is_default': self.is_default,
+            'created_at': self.created_at,
+            'last_used_at': self.last_used_at,
+        }
+
+        # Add safe method-specific display info
+        if self.method_type == 'mobile_money' and 'phone_number' in self.method_data:
+            phone = self.method_data.get('phone_number', '')
+            if len(phone) > 4:
+                display_info['masked_phone'] = f"***{phone[-4:]}"
+        elif self.method_type == 'card' and 'last_four' in self.method_data:
+            display_info['masked_card'] = f"****{self.method_data.get('last_four', '')}"
+
+        return display_info
 
 
 class PaymentTransaction(models.Model):
@@ -84,7 +156,7 @@ class PaymentTransaction(models.Model):
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='NGN')
+    currency = models.CharField(max_length=3, default='UGX')
     fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     net_amount = models.DecimalField(max_digits=10, decimal_places=2)
     
@@ -385,7 +457,7 @@ class PaymentReceipt(models.Model):
     # Payment details snapshot
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='issued')
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    currency = models.CharField(max_length=3, default='NGN')
+    currency = models.CharField(max_length=3, default='UGX')
     payment_method_name = models.CharField(max_length=100, blank=True, null=True)
     payment_type = models.CharField(max_length=20, blank=True, null=True)
     paid_at = models.DateTimeField(null=True, blank=True)
@@ -439,7 +511,7 @@ class PaymentPlan(models.Model):
     
     # Plan details
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    currency = models.CharField(max_length=3, default='NGN')
+    currency = models.CharField(max_length=3, default='UGX')
     interval = models.CharField(max_length=10, choices=INTERVAL_CHOICES)
     interval_count = models.IntegerField(default=1)
     

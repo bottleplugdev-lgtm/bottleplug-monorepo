@@ -13,4 +13,6 @@ router.register(r'delivery-tracking', views.DeliveryTrackingViewSet, basename='d
 
 urlpatterns = [
     path('', include(router.urls)),
-] 
+    # Custom endpoint for delivery instructions (to match mobile app expectations)
+    path('delivery-instructions/', views.OrderViewSet.as_view({'get': 'delivery_instructions', 'post': 'delivery_instructions'}), name='delivery-instructions'),
+]

@@ -15,10 +15,12 @@ from .serializers import (
     EventSerializer, EventListSerializer, EventDetailSerializer,
     RSVPSerializer, RSVPCreateSerializer, RSVPUpdateSerializer
 )
+from utils.pagination import PreserveStatePagination
 
 class EventViewSet(viewsets.ModelViewSet):
     queryset = Event.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = PreserveStatePagination
     
     def get_permissions(self):
         """

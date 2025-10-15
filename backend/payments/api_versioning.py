@@ -19,18 +19,27 @@ class FlutterwaveAPIVersion:
     SUPPORTED_VERSIONS = {
         '2024-01-01': {
             'name': 'v4 (Latest)',
-            'description': 'Latest API version with all features',
+            'description': 'Latest API version with OAuth 2.0 and enhanced features',
             'base_urls': {
-                'sandbox': 'https://api.flutterwave.cloud/developersandbox',
-                'production': 'https://api.flutterwave.cloud/f4bexperience'
+                'sandbox': 'https://developersandbox-api.flutterwave.com',
+                'production': 'https://api.flutterwave.com'
             },
+            'oauth_token_url': 'https://auth.flutterwave.com/oauth/token',
             'features': [
-                'OAuth 2.0 authentication',
-                'v4 API headers (Idempotency, Trace, Scenario)',
-                'Enhanced encryption',
-                'Comprehensive testing scenarios'
+                'OAuth 2.0 authentication (required)',
+                'Scenario-based testing with X-Scenario-Key',
+                'Simplified encryption (card data only)',
+                'Consistent payment flows',
+                'Enhanced error handling',
+                'Idempotency support',
+                'Request tracing'
             ],
-            'breaking_changes': [],
+            'breaking_changes': [
+                'OAuth 2.0 required (no API key fallback)',
+                'Different base URLs',
+                'Modified payload structures',
+                'New error response format'
+            ],
             'deprecated': False
         },
         '2023-01-01': {

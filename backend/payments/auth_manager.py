@@ -24,25 +24,28 @@ class FlutterwaveAuthManager:
     
     def generate_access_token(self):
         """
-        Generate OAuth 2.0 access token from Flutterwave
+        Generate OAuth 2.0 access token from Flutterwave v4 API
         """
         try:
             if not self.client_id or not self.client_secret:
                 logger.error("OAuth credentials not configured")
                 return False
-            
-            url = 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token'
-            
+
+            # Use official v4 OAuth endpoint
+            url = getattr(settings, 'FLUTTERWAVE_OAUTH_TOKEN_URL', 'https://auth.flutterwave.com/oauth/token')
+
             headers = {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
             }
-            
+
             data = {
                 'client_id': self.client_id,
                 'client_secret': self.client_secret,
-                'grant_type': 'client_credentials'
+                'grant_type': 'client_credentials',
+                'scope': 'payments'  # v4 requires scope specification
             }
-            
+
             response = requests.post(url, headers=headers, data=data, timeout=30)
             
             if response.status_code == 200:
@@ -131,7 +134,7 @@ class FlutterwaveAuthManager:
     def get_v4_headers(self, include_idempotency=True, include_trace=True, scenario_key=None, custom_idempotency_key=None):
         """
         Get complete v4 API headers with all required fields
-        
+
         Args:
             include_idempotency (bool): Include X-Idempotency-Key header
             include_trace (bool): Include X-Trace-Id header
@@ -139,7 +142,11 @@ class FlutterwaveAuthManager:
             custom_idempotency_key (str): Custom idempotency key (if None, auto-generated)
         """
         base_headers = self.get_auth_headers()
-        
+
+        # Add v4 API version header
+        api_version = getattr(settings, 'FLUTTERWAVE_API_VERSION', '2024-01-01')
+        base_headers['Flutterwave-Version'] = api_version
+
         # Add idempotency key if requested
         if include_idempotency:
             if custom_idempotency_key:

@@ -6,10 +6,12 @@ from products.models import Product
 from orders.models import Order
 from products.serializers import ProductSerializer
 from orders.serializers import OrderSerializer
+from utils.pagination import PreserveStatePagination
 
 class MobileProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.filter(status='active')
     serializer_class = ProductSerializer
+    pagination_class = PreserveStatePagination
     
     @action(detail=False, methods=['get'])
     def featured(self, request):

@@ -68,7 +68,7 @@
           </div>
           <div class="ml-4">
             <p class="text-sm font-medium text-secondary-600">Revenue</p>
-            <p class="text-2xl font-bold text-secondary-800">UGX {{ formatPrice(orderStats.total_revenue) }}</p>
+            <p class="text-2xl font-bold text-secondary-800">{{ formatPrice(orderStats.total_revenue) }}</p>
           </div>
         </div>
       </div>
@@ -226,10 +226,10 @@
               </td>
               <td class="py-4 px-4">
                 <div class="text-right">
-                  <div class="font-medium text-secondary-800">UGX {{ formatPrice(order.total_amount) }}</div>
+                  <div class="font-medium text-secondary-800">{{ formatPrice(order.total_amount) }}</div>
                   <div class="text-xs text-secondary-500">
-                    Subtotal: UGX {{ formatPrice(order.subtotal || 0) }}
-                    <span v-if="order.delivery_fee > 0" class="ml-1">+ UGX {{ formatPrice(order.delivery_fee) }} delivery</span>
+                    Subtotal: {{ formatPrice(order.subtotal || 0) }}
+                    <span v-if="order.delivery_fee > 0" class="ml-1">+ {{ formatPrice(order.delivery_fee) }} delivery</span>
                   </div>
                 </div>
               </td>
@@ -475,24 +475,24 @@
                          <div class="space-y-2">
                <div class="flex justify-between">
                  <span class="text-secondary-600">Subtotal:</span>
-                 <span class="font-medium">UGX {{ (parseFloat(selectedOrder.subtotal) || 0).toFixed(2) }}</span>
+                 <span class="font-medium">{{ formatPrice(parseFloat(selectedOrder.subtotal) || 0) }}</span>
                </div>
                <div class="flex justify-between">
                  <span class="text-secondary-600">Delivery Fee:</span>
-                 <span class="font-medium">UGX {{ (parseFloat(selectedOrder.delivery_fee) || 0).toFixed(2) }}</span>
+                 <span class="font-medium">{{ formatPrice(parseFloat(selectedOrder.delivery_fee) || 0) }}</span>
                </div>
                <div class="flex justify-between">
                  <span class="text-secondary-600">Tax:</span>
-                 <span class="font-medium">UGX {{ (parseFloat(selectedOrder.tax) || 0).toFixed(2) }}</span>
+                 <span class="font-medium">{{ formatPrice(parseFloat(selectedOrder.tax) || 0) }}</span>
                </div>
                <div class="flex justify-between">
                  <span class="text-secondary-600">Discount:</span>
-                 <span class="font-medium">UGX {{ (parseFloat(selectedOrder.discount) || 0).toFixed(2) }}</span>
+                 <span class="font-medium">{{ formatPrice(parseFloat(selectedOrder.discount) || 0) }}</span>
                </div>
                <div class="border-t pt-2">
                  <div class="flex justify-between">
                    <span class="font-semibold text-lg">Total:</span>
-                   <span class="font-bold text-lg text-primary-600">UGX {{ (parseFloat(selectedOrder.total_amount) || 0).toFixed(2) }}</span>
+                   <span class="font-bold text-lg text-primary-600">{{ formatPrice(parseFloat(selectedOrder.total_amount) || 0) }}</span>
                  </div>
                </div>
              </div>
@@ -535,8 +535,8 @@
               <p class="text-sm text-secondary-600">SKU: {{ item.product_sku || 'N/A' }}</p>
             </div>
                          <div class="text-right">
-               <p class="font-medium">UGX {{ (parseFloat(item.unit_price) || 0).toFixed(2) }} × {{ item.quantity }}</p>
-               <p class="font-semibold text-primary-600">UGX {{ (parseFloat(item.total_price) || 0).toFixed(2) }}</p>
+               <p class="font-medium">{{ formatPrice(parseFloat(item.unit_price) || 0) }} × {{ item.quantity }}</p>
+               <p class="font-semibold text-primary-600">{{ formatPrice(parseFloat(item.total_price) || 0) }}</p>
              </div>
           </div>
         </div>
@@ -723,7 +723,7 @@
               >
                 <option value="">Select a product</option>
                 <option v-for="product in products" :key="product.id" :value="product.id">
-                  {{ product.name }} - UGX {{ product.price }}
+                  {{ product.name }} - {{ formatPrice(product.price) }}
                 </option>
               </select>
               <input 
@@ -870,27 +870,27 @@
             <!-- Items -->
             <div v-for="item in newOrder.items.filter(i => i.product_id)" :key="item.product_id" class="flex justify-between text-sm">
               <span>{{ getProductName(item.product_id) }} x{{ item.quantity }}</span>
-              <span class="font-medium">UGX {{ formatPrice(getProductPrice(item.product_id) * item.quantity) }}</span>
+              <span class="font-medium">{{ formatPrice(getProductPrice(item.product_id) * item.quantity) }}</span>
             </div>
-            
+
             <div class="border-t pt-2 space-y-2">
               <!-- Subtotal -->
               <div class="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>UGX {{ formatPrice(calculateOrderTotal()) }}</span>
+                <span>{{ formatPrice(calculateOrderTotal()) }}</span>
               </div>
-              
+
               <!-- Tax -->
               <div class="flex justify-between text-sm">
                 <span>Tax (0%):</span>
-                <span>UGX 0</span>
+                <span>{{ formatPrice(0) }}</span>
               </div>
               
               <!-- Delivery Fee (Transportation) -->
               <div class="flex justify-between text-sm">
                 <span>Transportation:</span>
                 <div class="flex items-center space-x-2">
-                  <span v-if="newOrder.is_pickup">UGX 0</span>
+                  <span v-if="newOrder.is_pickup">{{ formatPrice(0) }}</span>
                   <div v-else class="flex items-center space-x-1">
                     <span>UGX</span>
                     <input 
@@ -907,13 +907,13 @@
               <!-- Discount -->
               <div class="flex justify-between text-sm">
                 <span>Discount:</span>
-                <span>UGX 0</span>
+                <span>{{ formatPrice(0) }}</span>
               </div>
               
               <!-- Total -->
               <div class="border-t pt-2 flex justify-between font-semibold text-base">
                 <span>Total:</span>
-                <span>UGX {{ formatPrice(calculateOrderTotalWithFees()) }}</span>
+                <span>{{ formatPrice(calculateOrderTotalWithFees()) }}</span>
               </div>
             </div>
           </div>
@@ -1011,7 +1011,7 @@
             >
               <option value="">Select a product</option>
               <option v-for="product in products" :key="product.id" :value="product.id">
-                {{ product.name }} - UGX {{ product.price }}
+                {{ product.name }} - {{ formatPrice(product.price) }}
               </option>
             </select>
             <input 
@@ -1154,27 +1154,27 @@
           <!-- Items -->
           <div v-for="item in editingOrder.items.filter(i => i.product_id)" :key="item.product_id" class="flex justify-between text-sm">
             <span>{{ getProductName(item.product_id) }} x{{ item.quantity }}</span>
-            <span class="font-medium">UGX {{ formatPrice(getProductPrice(item.product_id) * item.quantity) }}</span>
+            <span class="font-medium">{{ formatPrice(getProductPrice(item.product_id) * item.quantity) }}</span>
           </div>
-          
+
           <div class="border-t pt-2 space-y-2">
             <!-- Subtotal -->
             <div class="flex justify-between text-sm">
               <span>Subtotal:</span>
-              <span>UGX {{ formatPrice(calculateEditingOrderTotal()) }}</span>
+              <span>{{ formatPrice(calculateEditingOrderTotal()) }}</span>
             </div>
-            
+
             <!-- Tax -->
             <div class="flex justify-between text-sm">
               <span>Tax (0%):</span>
-              <span>UGX 0</span>
+              <span>{{ formatPrice(0) }}</span>
             </div>
             
             <!-- Delivery Fee (Transportation) -->
             <div class="flex justify-between text-sm">
               <span>Transportation:</span>
               <div class="flex items-center space-x-2">
-                <span v-if="editingOrder.is_pickup">UGX 0</span>
+                <span v-if="editingOrder.is_pickup">{{ formatPrice(0) }}</span>
                 <div v-else class="flex items-center space-x-1">
                   <span>UGX</span>
                   <input 
@@ -1191,13 +1191,13 @@
             <!-- Discount -->
             <div class="flex justify-between text-sm">
               <span>Discount:</span>
-              <span>UGX 0</span>
+              <span>{{ formatPrice(0) }}</span>
             </div>
             
             <!-- Total -->
             <div class="border-t pt-2 flex justify-between font-semibold text-base">
               <span>Total:</span>
-              <span>UGX {{ formatPrice(calculateEditingOrderTotalWithFees()) }}</span>
+              <span>{{ formatPrice(calculateEditingOrderTotalWithFees()) }}</span>
             </div>
           </div>
         </div>
@@ -1594,10 +1594,10 @@ const formatDate = (dateString) => {
 }
 
 const formatPrice = (price) => {
-  if (!price && price !== 0) return '0.00'
+  if (!price && price !== 0) return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(0)
   const numPrice = parseFloat(price)
-  if (isNaN(numPrice)) return '0.00'
-  return numPrice.toFixed(2)
+  if (isNaN(numPrice)) return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(0)
+  return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', minimumFractionDigits: 0 }).format(numPrice)
 }
 
 const viewOrder = (order) => {

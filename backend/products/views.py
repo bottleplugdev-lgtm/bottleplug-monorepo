@@ -671,7 +671,108 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response(serializer_result.data)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @action(detail=False, methods=['post'])
+    def advanced_filter(self, request):
+        """Advanced product filtering with comprehensive options"""
+        from .inventory_serializers import ProductFilterSerializer
+
+        serializer = ProductFilterSerializer(data=request.data)
+        if serializer.is_valid():
+            queryset = Product.objects.select_related('category').prefetch_related('variants', 'product_images')
+
+            # Search query
+            if serializer.validated_data.get('search_query'):
+                query = serializer.validated_data['search_query']
+                queryset = queryset.filter(
+                    Q(name__icontains=query) |
+                    Q(description__icontains=query) |
+                    Q(sku__icontains=query) |
+                    Q(tags__contains=[query]) |
+                    Q(region__icontains=query) |
+                    Q(vintage__icontains=query)
+                )
+
+            # Categories filter
+            if serializer.validated_data.get('categories'):
+                queryset = queryset.filter(category__name__in=serializer.validated_data['categories'])
+
+            # Price range filter
+            if serializer.validated_data.get('price_min'):
+                queryset = queryset.filter(price__gte=serializer.validated_data['price_min'])
+            if serializer.validated_data.get('price_max'):
+                queryset = queryset.filter(price__lte=serializer.validated_data['price_max'])
+
+            # Alcohol content filter
+            if serializer.validated_data.get('alcohol_min'):
+                queryset = queryset.filter(alcohol_percentage__gte=serializer.validated_data['alcohol_min'])
+            if serializer.validated_data.get('alcohol_max'):
+                queryset = queryset.filter(alcohol_percentage__lte=serializer.validated_data['alcohol_max'])
+
+            # Regions filter
+            if serializer.validated_data.get('regions'):
+                queryset = queryset.filter(region__in=serializer.validated_data['regions'])
+
+            # Brands filter (assuming brand is stored in a related field or as part of name)
+            if serializer.validated_data.get('brands'):
+                brand_q = Q()
+                for brand in serializer.validated_data['brands']:
+                    brand_q |= Q(name__icontains=brand)
+                queryset = queryset.filter(brand_q)
+
+            # Vintages filter
+            if serializer.validated_data.get('vintages'):
+                queryset = queryset.filter(vintage__in=serializer.validated_data['vintages'])
+
+            # Rating filter
+            if serializer.validated_data.get('rating_min'):
+                queryset = queryset.filter(average_rating__gte=serializer.validated_data['rating_min'])
+            if serializer.validated_data.get('rating_max'):
+                queryset = queryset.filter(average_rating__lte=serializer.validated_data['rating_max'])
+
+            # Stock filter
+            if serializer.validated_data.get('in_stock_only'):
+                queryset = queryset.filter(stock__gt=0, status='active')
+
+            # Sale filter
+            if serializer.validated_data.get('on_sale_only'):
+                queryset = queryset.filter(is_on_sale=True)
+
+            # New arrivals filter (products created in last 30 days)
+            if serializer.validated_data.get('new_arrivals_only'):
+                thirty_days_ago = timezone.now() - timedelta(days=30)
+                queryset = queryset.filter(created_at__gte=thirty_days_ago)
+
+            # Sorting
+            sort_by = serializer.validated_data.get('sort_by', 'relevance')
+            if sort_by == 'price_asc':
+                queryset = queryset.order_by('price')
+            elif sort_by == 'price_desc':
+                queryset = queryset.order_by('-price')
+            elif sort_by == 'name_asc':
+                queryset = queryset.order_by('name')
+            elif sort_by == 'name_desc':
+                queryset = queryset.order_by('-name')
+            elif sort_by == 'rating_desc':
+                queryset = queryset.order_by('-average_rating')
+            elif sort_by == 'newest_first':
+                queryset = queryset.order_by('-created_at')
+            elif sort_by == 'oldest_first':
+                queryset = queryset.order_by('created_at')
+            elif sort_by == 'popularity_desc':
+                # Assuming popularity is based on review count or sales
+                queryset = queryset.order_by('-review_count')
+            else:  # relevance
+                queryset = queryset.order_by('-is_featured', '-created_at')
+
+            # Paginate results
+            paginator = self.paginator
+            page = paginator.paginate_queryset(queryset, request)
+            serializer_result = ProductSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer_result.data)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @action(detail=False, methods=['get'])
     def featured(self, request):
         """Get featured products with pagination - Accessible with web token or Firebase auth"""

@@ -23,7 +23,7 @@
           <div class="ml-4">
             <p class="text-sm font-medium text-gray-500">Total Amount</p>
             <p class="text-2xl font-bold text-gray-900">
-              UGX {{ formatAmount(stats.total_amount || 0) }}
+              {{ formatAmount(stats.total_amount || 0) }}
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@
           <div class="ml-3">
             <p class="text-sm font-medium text-gray-500">Avg Transaction</p>
             <p class="text-xl font-bold text-gray-900">
-              UGX {{ formatAmount(averageTransaction) }}
+              {{ formatAmount(averageTransaction) }}
             </p>
           </div>
         </div>
@@ -133,7 +133,7 @@
             </div>
             <h4 class="font-medium text-green-900">Cash</h4>
             <p class="text-2xl font-bold text-green-700">{{ cashTransactions }}</p>
-            <p class="text-sm text-green-600">UGX {{ formatAmount(cashAmount) }}</p>
+            <p class="text-sm text-green-600">{{ formatAmount(cashAmount) }}</p>
           </div>
 
           <!-- Mobile Money -->
@@ -143,7 +143,7 @@
             </div>
             <h4 class="font-medium text-blue-900">Mobile Money</h4>
             <p class="text-2xl font-bold text-blue-700">{{ mobileMoneyTransactions }}</p>
-            <p class="text-sm text-blue-600">UGX {{ formatAmount(mobileMoneyAmount) }}</p>
+            <p class="text-sm text-blue-600">{{ formatAmount(mobileMoneyAmount) }}</p>
           </div>
 
           <!-- Card Payments -->
@@ -153,7 +153,7 @@
             </div>
             <h4 class="font-medium text-purple-900">Card</h4>
             <p class="text-2xl font-bold text-purple-700">{{ cardTransactions }}</p>
-            <p class="text-sm text-purple-600">UGX {{ formatAmount(cardAmount) }}</p>
+            <p class="text-sm text-purple-600">{{ formatAmount(cardAmount) }}</p>
           </div>
         </div>
       </div>
@@ -200,7 +200,7 @@
             </div>
             <div class="text-right">
               <p class="text-sm font-semibold text-gray-900">
-                UGX {{ formatAmount(transaction.amount) }}
+                {{ formatAmount(transaction.amount) }}
               </p>
               <p class="text-xs text-gray-500 capitalize">
                 {{ transaction.payment_method }}
@@ -314,7 +314,11 @@ const cardAmount = computed(() => {
 })
 
 const formatAmount = (amount) => {
-  return new Intl.NumberFormat('en-UG').format(amount)
+  return new Intl.NumberFormat('en-UG', {
+    style: 'currency',
+    currency: 'UGX',
+    minimumFractionDigits: 0
+  }).format(amount)
 }
 
 const formatDate = (dateString) => {

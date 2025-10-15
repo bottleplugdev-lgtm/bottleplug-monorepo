@@ -283,6 +283,7 @@
           <div>
             <label class="block text-sm font-medium text-secondary-700">Currency</label>
             <select v-model="preferences.currency" class="input mt-1">
+              <option value="UGX">UGX (USh)</option>
               <option value="USD">USD ($)</option>
               <option value="EUR">EUR (€)</option>
               <option value="GBP">GBP (£)</option>
@@ -531,7 +532,7 @@ const preferences = ref({
   emailNotifications: true,
   smsNotifications: false,
   lowStockAlerts: true,
-  currency: 'USD',
+  currency: 'UGX',
   dateFormat: 'MM/DD/YYYY',
   timezone: 'UTC-5',
   language: 'en',
@@ -592,7 +593,7 @@ const loadUserData = async () => {
       emailNotifications: p.emailNotifications !== false,
       smsNotifications: !!p.smsNotifications,
       lowStockAlerts: p.lowStockAlerts !== false,
-      currency: p.currency || 'USD',
+      currency: p.currency || 'UGX',
       dateFormat: p.dateFormat || 'MM/DD/YYYY',
       timezone: p.timezone || 'UTC-5',
       language: p.language || 'en',

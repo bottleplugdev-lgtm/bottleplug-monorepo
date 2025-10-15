@@ -103,7 +103,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     """Basic Order serializer"""
     items = OrderItemSerializer(many=True, read_only=True)
-    customer_name = serializers.CharField(source='customer.full_name', read_only=True)
+    customer_name = serializers.CharField(source='customer.get_full_name', read_only=True)
     
     class Meta:
         model = Order
@@ -171,7 +171,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         # Create order
         order = Order.objects.create(
             customer=customer,
-            customer_name=validated_data.get('customer_name', customer.full_name),
+            customer_name=validated_data.get('customer_name', customer.get_full_name()),
             customer_email=validated_data.get('customer_email', customer.email),
             customer_phone=validated_data.get('customer_phone', customer.phone_number),
             payment_method=validated_data.get('payment_method', 'cash'),
@@ -387,7 +387,7 @@ class WishlistSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Serializer for Review model"""
-    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
     product_name = serializers.CharField(source='product.name', read_only=True)
     
     class Meta:

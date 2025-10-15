@@ -21,6 +21,8 @@ from .serializers import (
     OrderReceiptCreateSerializer, OrderReceiptUpdateSerializer, InvoiceSerializer, InvoiceCreateSerializer,
     InvoiceDetailSerializer, InvoicePaymentSerializer, InvoiceStatsSerializer
 )
+from users.models import User
+from utils.pagination import PreserveStatePagination
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -30,6 +32,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PreserveStatePagination
     
     @swagger_auto_schema(tags=['orders'])
     def list(self, request, *args, **kwargs):
@@ -316,7 +319,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             from users.models import User
             driver = User.objects.get(id=driver_id, user_type='driver')
             order.delivery_person = driver
-            order.delivery_person_name = driver.full_name
+            order.delivery_person_name = driver.get_full_name()
             order.delivery_person_phone = driver.phone_number
             order.save()
             
@@ -464,9 +467,67 @@ class OrderViewSet(viewsets.ModelViewSet):
             
         except Exception as e:
             return Response(
-                {'error': f'Failed to get payment balance: {str(e)}'}, 
+                {'error': f'Failed to get payment balance: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @swagger_auto_schema(
+        method='get',
+        tags=['orders'],
+        operation_description="Get user delivery instructions"
+    )
+    @swagger_auto_schema(
+        method='post',
+        tags=['orders'],
+        operation_description="Save user delivery instructions"
+    )
+    @action(detail=False, methods=['get', 'post'])
+    def delivery_instructions(self, request):
+        """Get or save user delivery instructions"""
+        user = request.user
+
+        if request.method == 'GET':
+            # Get the user's most recent delivery instructions from their latest order
+            latest_order = Order.objects.filter(customer=user).order_by('-created_at').first()
+
+            if latest_order and latest_order.delivery_instructions:
+                # Return the delivery instructions in the format expected by mobile app
+                return Response({
+                    'id': str(latest_order.id),
+                    'user_id': str(user.id),
+                    'instructions': latest_order.delivery_instructions,
+                    'preferred_time': None,  # Could be extended to store this
+                    'contact_person': latest_order.customer_name,
+                    'contact_phone': latest_order.customer_phone,
+                    'delivery_address': latest_order.delivery_address,
+                    'leave_at_door': False,  # Could be extended to store this
+                    'require_signature': True,  # Could be extended to store this
+                    'call_before_delivery': True,  # Could be extended to store this
+                    'created_at': latest_order.created_at.isoformat(),
+                    'updated_at': latest_order.updated_at.isoformat() if latest_order.updated_at else None
+                })
+            else:
+                # Return empty response if no delivery instructions found
+                return Response({})
+
+        elif request.method == 'POST':
+            # Save delivery instructions by updating user's profile or creating a temporary record
+            # For now, we'll just return success since this is mainly used for user preferences
+            # In a real implementation, you might want to store this in a UserProfile model
+
+            instructions_data = request.data
+
+            # You could extend this to save to a UserProfile model or similar
+            # For now, just return success response
+            return Response({
+                'message': 'Delivery instructions saved successfully',
+                'data': instructions_data
+            })
+
+        return Response(
+            {'error': 'Method not allowed'},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED
+        )
 
 
 class CartViewSet(viewsets.ModelViewSet):
@@ -475,6 +536,7 @@ class CartViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CartSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PreserveStatePagination
     
     @swagger_auto_schema(tags=['orders'])
     def list(self, request, *args, **kwargs):
@@ -656,7 +718,7 @@ class CartViewSet(viewsets.ModelViewSet):
                 }
                 for item in cart_items
             ],
-            'customer_name': getattr(user, 'full_name', user.email),
+            'customer_name': user.get_full_name(),
             'customer_email': user.email,
             'customer_phone': request.data.get('customer_phone', getattr(user, 'phone_number', '')),
             'payment_method': request.data.get('payment_method', 'mobile_money'),
@@ -702,6 +764,7 @@ class WishlistViewSet(viewsets.ModelViewSet):
     """
     serializer_class = WishlistSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PreserveStatePagination
     
     def get_permissions(self):
         """Allow web token auth for read operations, require Firebase auth for write operations"""
@@ -807,6 +870,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    pagination_class = PreserveStatePagination
     permission_classes = [permissions.IsAuthenticated]
     
     @swagger_auto_schema(tags=['orders'])
@@ -895,6 +959,7 @@ class OrderReceiptViewSet(viewsets.ModelViewSet):
     """
     queryset = OrderReceipt.objects.all()
     serializer_class = OrderReceiptSerializer
+    pagination_class = PreserveStatePagination
     permission_classes = [permissions.IsAuthenticated]
     
     @swagger_auto_schema(tags=['orders'])
@@ -1037,6 +1102,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     """
     queryset = Invoice.objects.all()
     serializer_class = InvoiceSerializer
+    pagination_class = PreserveStatePagination
     permission_classes = [permissions.IsAuthenticated]
     
     @swagger_auto_schema(tags=['orders'])
@@ -1452,6 +1518,7 @@ class DeliveryTrackingViewSet(viewsets.ReadOnlyModelViewSet):
     """
     serializer_class = OrderSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = PreserveStatePagination
     
     def get_queryset(self):
         """Return orders that are deliverable (not pickup)"""

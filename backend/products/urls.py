@@ -11,4 +11,5 @@ router.register(r'measurements', views.ProductMeasurementViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-] 
+    path('', include('products.inventory_urls')),
+]

@@ -29,7 +29,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-change-this-in-produc
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,bottleplugug.com,www.bottleplugug.com,api.bottleplugug.com,admin.bottleplugug.com,dashboard.bottleplugug.com,docs.bottleplugug.com,db.bottleplugug.com', cast=lambda v: [s.strip() for s in v.split(',')])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -341,27 +341,30 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Flutterwave Payment Settings
+# Flutterwave v4 Payment Settings
 # Environment Configuration
 FLUTTERWAVE_ENVIRONMENT = os.environ.get('FLUTTERWAVE_ENVIRONMENT', 'sandbox')  # 'sandbox' or 'production'
 
-# API Version Configuration
-FLUTTERWAVE_API_VERSION = os.environ.get('FLUTTERWAVE_API_VERSION', '2024-01-01')  # '2024-01-01' or '2023-01-01'
+# API Version Configuration - v4 uses date-based versioning
+FLUTTERWAVE_API_VERSION = os.environ.get('FLUTTERWAVE_API_VERSION', '2024-01-01')  # v4 API version
 
-# OAuth 2.0 Credentials (Recommended)
+# OAuth 2.0 Credentials (v4 Required)
 FLW_CLIENT_ID = os.environ.get('FLW_CLIENT_ID', '8e7eff59-be32-4697-8bb0-acc5e075d9e2')
 FLW_CLIENT_SECRET = os.environ.get('FLW_CLIENT_SECRET', 'cBhBkZKitiKos6ofbvaLz3plwsNqrgz2')
 
-# Legacy API Key Settings (Fallback)
+# Legacy API Key Settings (v3 Fallback - will be deprecated)
 FLUTTERWAVE_SECRET_KEY = os.environ.get('FLUTTERWAVE_SECRET_KEY', 'FLWSECK_TEST-b12c2ec53d3f7a675505a39ef14f3db6-X')
 FLUTTERWAVE_PUBLIC_KEY = os.environ.get('FLUTTERWAVE_PUBLIC_KEY', 'FLWPUBK_TEST-bc21e991ab7b388f7528457efecbfabe-X')
 FLUTTERWAVE_ENCRYPTION_KEY = os.environ.get('FLUTTERWAVE_ENCRYPTION_KEY', 'PbklZgsEgpznG61MgU+CBF3VMwINCKTh2MIU996U7zM=')
 FLUTTERWAVE_SECRET_HASH = os.environ.get('FLUTTERWAVE_SECRET_HASH', '')
 
-# Flutterwave v4 API URLs
-FLUTTERWAVE_SANDBOX_URL = 'https://api.flutterwave.cloud/developersandbox'
-FLUTTERWAVE_PRODUCTION_URL = 'https://api.flutterwave.cloud/f4bexperience'
+# Flutterwave v4 API URLs (Official)
+FLUTTERWAVE_SANDBOX_URL = 'https://developersandbox-api.flutterwave.com'
+FLUTTERWAVE_PRODUCTION_URL = 'https://api.flutterwave.com'
 FLUTTERWAVE_BASE_URL = os.environ.get('FLUTTERWAVE_BASE_URL', FLUTTERWAVE_SANDBOX_URL)
+
+# OAuth 2.0 Token Endpoint
+FLUTTERWAVE_OAUTH_TOKEN_URL = 'https://auth.flutterwave.com/oauth/token'
 
 # Default Payment Settings
 DEFAULT_PAYMENT_CURRENCY = os.environ.get('DEFAULT_PAYMENT_CURRENCY', 'UGX')

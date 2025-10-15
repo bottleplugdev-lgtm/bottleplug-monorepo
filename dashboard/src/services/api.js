@@ -1,15 +1,50 @@
 import { auth } from '@/firebase/config'
 
+// Environment detection
+const getEnvironment = () => {
+  const env = import.meta.env.VITE_APP_ENVIRONMENT || import.meta.env.MODE || 'development'
+  const isDev = env === 'development' || import.meta.env.DEV
+  const isProd = env === 'production' || import.meta.env.PROD
+  const isDebug = import.meta.env.VITE_DEBUG_MODE === 'true' || isDev
+
+  return {
+    environment: env,
+    isDevelopment: isDev,
+    isProduction: isProd,
+    isDebug: isDebug
+  }
+}
+
 // Resolve API base URL robustly across envs
 const resolveApiBaseUrl = () => {
+  const { environment, isDevelopment, isProduction, isDebug } = getEnvironment()
   let base = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || ''
-  const defaultBase = 'https://api.bottleplugug.com/api/v1'
+
+  // Default URLs based on environment
+  const defaultProdBase = 'https://api.bottleplugug.com/api/v1'
+  const defaultDevBase = 'http://localhost:8000/api/v1'
+  const defaultBase = isProduction ? defaultProdBase : defaultDevBase
+
   try {
     if (!base) return defaultBase
     // Trim whitespace
     base = String(base).trim()
     // If already absolute http(s)
-    if (/^https?:\/\//i.test(base)) return base.replace(/\/?$/, '')
+    if (/^https?:\/\//i.test(base)) {
+      const resolvedUrl = base.replace(/\/?$/, '')
+
+      // Debug logging
+      if (isDebug) {
+        console.log('🔧 Dashboard API Configuration:')
+        console.log('   Environment:', environment)
+        console.log('   Development Mode:', isDevelopment)
+        console.log('   Production Mode:', isProduction)
+        console.log('   Debug Mode:', isDebug)
+        console.log('   Resolved URL:', resolvedUrl)
+      }
+
+      return resolvedUrl
+    }
     // If only path like '/api/v1' → attach same host with default backend port 8000
     if (base.startsWith('/')) {
       return `${window.location.protocol}//${window.location.hostname}:8000${base}`.replace(/\/?$/, '')
@@ -26,6 +61,7 @@ const resolveApiBaseUrl = () => {
 }
 
 const API_BASE_URL = resolveApiBaseUrl()
+const ENV_CONFIG = getEnvironment()
 
 // Get device info for API calls
 const getDeviceInfo = () => {
@@ -322,18 +358,34 @@ export const getRecentOrders = async (days = 30) => {
 
 // ===== PRODUCTS =====
 
-// Get all products
+// Get all products with pagination support
 export const getProducts = async (params = {}) => {
   try {
-    const queryString = new URLSearchParams(params).toString()
+    // Add default pagination parameters
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
     const url = `/products/products/${queryString ? `?${queryString}` : ''}`
     console.log('API Request URL:', url)
-    console.log('API Request Params:', params)
-    
+    console.log('API Request Params:', paginatedParams)
+
     const response = await apiRequest(url)
     console.log('API Response:', response)
-    
-    return response
+
+    // Ensure response has pagination structure
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
   } catch (error) {
     console.error('Failed to get products:', error)
     throw error
@@ -636,12 +688,16 @@ export const searchProducts = async (query, params = {}) => {
 
 // ===== ORDERS =====
 
-// Get all orders with advanced date filtering
+// Get all orders with advanced date filtering and pagination
 export const getOrders = async (params = {}) => {
   try {
-    // Build query parameters for advanced filtering
-    const queryParams = { ...params }
-    
+    // Build query parameters for advanced filtering with pagination
+    const queryParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
     // Handle date filtering
     if (params.dateFilter) {
       queryParams.date_filter = params.dateFilter
@@ -655,18 +711,29 @@ export const getOrders = async (params = {}) => {
     if (params.specificDate) {
       queryParams.specific_date = params.specificDate
     }
-    
+
     const queryString = new URLSearchParams(queryParams).toString()
     const endpoint = `/orders/orders/${queryString ? `?${queryString}` : ''}`
-    
+
     console.log('getOrders API call:', {
       originalParams: params,
       processedParams: queryParams,
       queryString,
       endpoint
     })
-    
-    return await apiRequest(endpoint)
+
+    const response = await apiRequest(endpoint)
+
+    // Ensure response has pagination structure
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
   } catch (error) {
     console.error('Failed to get orders:', error)
     throw error
@@ -891,19 +958,36 @@ export const markReceiptDelivered = async (id) => {
 
 // ===== INVOICES =====
 
-// Get all invoices
+// Get all invoices with pagination
 export const getInvoices = async (params = {}) => {
   try {
-    const queryString = new URLSearchParams(params).toString()
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
     const endpoint = `/orders/invoices/${queryString ? `?${queryString}` : ''}`
-    
+
     console.log('getInvoices API call:', {
-      params,
+      params: paginatedParams,
       queryString,
       endpoint
     })
-    
-    return await apiRequest(endpoint)
+
+    const response = await apiRequest(endpoint)
+
+    // Ensure response has pagination structure
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
   } catch (error) {
     console.error('Failed to get invoices:', error)
     throw error
@@ -1359,7 +1443,7 @@ export const syncMissingPaymentReceipts = async () => {
 }
 
 // Payment Helper Functions
-export const createOrderPayment = async (orderId, amount, currency = 'NGN', description = '') => {
+export const createOrderPayment = async (orderId, amount, currency = 'UGX', description = '') => {
   try {
     return await initiatePayment({
       transaction_type: 'order',
@@ -1374,7 +1458,7 @@ export const createOrderPayment = async (orderId, amount, currency = 'NGN', desc
   }
 }
 
-export const createInvoicePayment = async (invoiceId, amount, currency = 'NGN', description = '') => {
+export const createInvoicePayment = async (invoiceId, amount, currency = 'UGX', description = '') => {
   try {
     return await initiatePayment({
       transaction_type: 'invoice',
@@ -1389,7 +1473,7 @@ export const createInvoicePayment = async (invoiceId, amount, currency = 'NGN', 
   }
 }
 
-export const createEventPayment = async (eventId, amount, currency = 'NGN', description = '') => {
+export const createEventPayment = async (eventId, amount, currency = 'UGX', description = '') => {
   try {
     return await initiatePayment({
       transaction_type: 'event',
@@ -1404,7 +1488,7 @@ export const createEventPayment = async (eventId, amount, currency = 'NGN', desc
   }
 }
 
-export const createReceiptPayment = async (receiptId, amount, currency = 'NGN', description = '') => {
+export const createReceiptPayment = async (receiptId, amount, currency = 'UGX', description = '') => {
   try {
     return await initiatePayment({
       transaction_type: 'receipt',
@@ -1713,11 +1797,28 @@ export const uploadProfileImage = async (file) => {
   }
 }
 
-// Get all users
+// Get all users with pagination
 export const getUsers = async (params = {}) => {
   try {
-    const queryString = new URLSearchParams(params).toString()
-    return await apiRequest(`/auth/users/${queryString ? `?${queryString}` : ''}`)
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
+    const response = await apiRequest(`/auth/users/${queryString ? `?${queryString}` : ''}`)
+
+    // Ensure response has pagination structure
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
   } catch (error) {
     console.error('Failed to get users:', error)
     throw error
@@ -1780,13 +1881,112 @@ export const getMyDeliveries = async () => {
   }
 }
 
+// ===== INVENTORY =====
+
+// Get inventory items with pagination
+export const getInventoryItems = async (params = {}) => {
+  try {
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
+    const response = await apiRequest(`/products/inventory/${queryString ? `?${queryString}` : ''}`)
+
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
+  } catch (error) {
+    console.error('Failed to get inventory items:', error)
+    throw error
+  }
+}
+
+// Get stock movements with pagination
+export const getStockMovements = async (params = {}) => {
+  try {
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
+    const response = await apiRequest(`/products/stock-movements/${queryString ? `?${queryString}` : ''}`)
+
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
+  } catch (error) {
+    console.error('Failed to get stock movements:', error)
+    throw error
+  }
+}
+
+// Get pre-orders with pagination
+export const getPreOrders = async (params = {}) => {
+  try {
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
+    const response = await apiRequest(`/products/pre-orders/${queryString ? `?${queryString}` : ''}`)
+
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
+  } catch (error) {
+    console.error('Failed to get pre-orders:', error)
+    throw error
+  }
+}
+
 // ===== EVENTS =====
 
-// Get all events
+// Get all events with pagination
 export const getEvents = async (params = {}) => {
   try {
-    const queryString = new URLSearchParams(params).toString()
-    return await apiRequest(`/events/events/${queryString ? `?${queryString}` : ''}`)
+    const paginatedParams = {
+      page: 1,
+      page_size: 20,
+      ...params
+    }
+
+    const queryString = new URLSearchParams(paginatedParams).toString()
+    const response = await apiRequest(`/events/events/${queryString ? `?${queryString}` : ''}`)
+
+    return {
+      results: response.results || response,
+      count: response.count || 0,
+      next: response.next || null,
+      previous: response.previous || null,
+      current_page: response.current_page || 1,
+      total_pages: response.total_pages || 1,
+      page_size: response.page_size || 20
+    }
   } catch (error) {
     console.error('Failed to get events:', error)
     throw error

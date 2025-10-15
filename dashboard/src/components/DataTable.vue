@@ -147,9 +147,10 @@ const formatValue = (value, type) => {
   
   switch (type) {
     case 'currency':
-      return new Intl.NumberFormat('en-US', {
+      return new Intl.NumberFormat('en-UG', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'UGX',
+        minimumFractionDigits: 0
       }).format(value)
     case 'date':
       return new Date(value).toLocaleDateString()

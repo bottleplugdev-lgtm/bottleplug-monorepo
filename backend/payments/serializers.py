@@ -1,21 +1,85 @@
 from rest_framework import serializers
 from .models import (
-    PaymentMethod, PaymentTransaction, PaymentWebhook, 
+    PaymentMethod, UserPaymentMethod, PaymentTransaction, PaymentWebhook,
     PaymentRefund, PaymentPlan, PaymentSubscription, PaymentReceipt
 )
 
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     """Payment method serializer"""
-    
+
     class Meta:
         model = PaymentMethod
         fields = [
-            'id', 'name', 'payment_type', 'is_active', 'min_amount', 
+            'id', 'name', 'payment_type', 'is_active', 'min_amount',
             'max_amount', 'processing_fee', 'fixed_fee', 'flutterwave_code',
             'country_code', 'currency', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class UserPaymentMethodSerializer(serializers.ModelSerializer):
+    """User payment method serializer for listing saved payment methods"""
+    masked_info = serializers.SerializerMethodField()
+    method_type_display = serializers.CharField(source='get_method_type_display', read_only=True)
+
+    class Meta:
+        model = UserPaymentMethod
+        fields = [
+            'id', 'nickname', 'method_type', 'method_type_display',
+            'is_default', 'is_active', 'created_at', 'last_used_at', 'masked_info'
+        ]
+        read_only_fields = ['id', 'created_at', 'last_used_at', 'masked_info', 'method_type_display']
+
+    def get_masked_info(self, obj):
+        """Return masked payment method information for security"""
+        return obj.get_display_info()
+
+
+class UserPaymentMethodCreateSerializer(serializers.ModelSerializer):
+    """User payment method serializer for creating new saved payment methods"""
+
+    class Meta:
+        model = UserPaymentMethod
+        fields = [
+            'nickname', 'method_type', 'method_data', 'is_default'
+        ]
+
+    def validate_nickname(self, value):
+        """Validate nickname is unique for this user"""
+        user = self.context['request'].user
+        if UserPaymentMethod.objects.filter(user=user, nickname=value).exists():
+            raise serializers.ValidationError("You already have a payment method with this nickname.")
+        return value
+
+    def validate_method_data(self, value):
+        """Validate and sanitize method_data based on method_type"""
+        method_type = self.initial_data.get('method_type')
+
+        if method_type == 'mobile_money':
+            required_fields = ['network', 'phone_number']
+            for field in required_fields:
+                if field not in value:
+                    raise serializers.ValidationError(f"'{field}' is required for mobile money payments.")
+
+            # Validate phone number format
+            phone = value.get('phone_number', '')
+            if not phone.startswith('256') or len(phone) != 12:
+                raise serializers.ValidationError("Phone number must be in format 256XXXXXXXXX")
+
+        elif method_type == 'card':
+            # For cards, we should only store safe information
+            # In a real implementation, you'd integrate with a secure tokenization service
+            allowed_fields = ['last_four', 'card_type', 'expiry_month', 'expiry_year']
+            sanitized_data = {k: v for k, v in value.items() if k in allowed_fields}
+            return sanitized_data
+
+        return value
+
+    def create(self, validated_data):
+        """Create user payment method with proper user assignment"""
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class PaymentTransactionSerializer(serializers.ModelSerializer):
@@ -240,7 +304,7 @@ class PaymentInitiateSerializer(serializers.Serializer):
     """Serializer for initiating payments"""
     transaction_type = serializers.ChoiceField(choices=PaymentTransaction.TRANSACTION_TYPES)
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
-    currency = serializers.CharField(max_length=3, default='NGN')
+    currency = serializers.CharField(max_length=3, default='UGX')
     order_id = serializers.IntegerField(required=False)
     invoice_id = serializers.IntegerField(required=False)
     event_id = serializers.IntegerField(required=False)

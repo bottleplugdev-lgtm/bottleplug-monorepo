@@ -7,6 +7,9 @@ router = DefaultRouter()
 # Payment methods
 router.register(r'payment-methods', views.PaymentMethodViewSet)
 
+# User saved payment methods
+router.register(r'user-payment-methods', views.UserPaymentMethodViewSet, basename='user-payment-methods')
+
 # Payment transactions
 router.register(r'transactions', views.PaymentTransactionViewSet)
 
