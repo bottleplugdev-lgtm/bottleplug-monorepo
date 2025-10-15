@@ -26,6 +26,9 @@ LOGGING = {
 
 # Disable Firebase for tests
 FIREBASE_CREDENTIALS_PATH = None
+FIREBASE_PRIVATE_KEY = None
+FIREBASE_CLIENT_EMAIL = None
+FIREBASE_PROJECT_ID = None
 
 # Disable Celery for tests
 CELERY_TASK_ALWAYS_EAGER = True
