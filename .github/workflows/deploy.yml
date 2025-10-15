@@ -87,11 +87,23 @@ jobs:
     - name: Run database migrations
       run: |
         cd backend
+        echo "🔍 Debug: Current directory: $(pwd)"
+        echo "🔍 Debug: Checking if test_settings_override.py exists:"
+        ls -la tanna_backend/test_settings_override.py || echo "❌ test_settings_override.py not found!"
+        echo "🔍 Debug: Django settings check:"
+        python -c "import os; print('DJANGO_SETTINGS_MODULE:', os.environ.get('DJANGO_SETTINGS_MODULE', 'Not set'))"
+        echo "🔍 Debug: Running migrations with test_settings_override..."
         python manage.py migrate --verbosity=1 --settings=tanna_backend.test_settings_override
 
     - name: Run Python tests
       run: |
         cd backend
+        echo "🔍 Debug: Running tests with test_settings_override..."
+        echo "🔍 Debug: Verifying settings file exists:"
+        ls -la tanna_backend/test_settings_override.py
+        echo "🔍 Debug: Testing settings import:"
+        python -c "from tanna_backend.test_settings_override import SECRET_KEY; print('✅ Settings import successful, SECRET_KEY:', SECRET_KEY)"
+        echo "🔍 Debug: Running tests..."
         python manage.py test --verbosity=1 --keepdb --failfast --settings=tanna_backend.test_settings_override
     
     - name: Run Frontend tests
