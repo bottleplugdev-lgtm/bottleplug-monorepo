@@ -51,7 +51,6 @@ services:
       - FLW_CLIENT_ID=${FLW_CLIENT_ID}
       - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET}
       - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY}
-      - FLUTTERWAVE_ENVIRONMENT=${FLUTTERWAVE_ENVIRONMENT}
       - FIREBASE_CREDENTIALS_PATH=/app/firebase-credentials.json
     volumes:
       - static_volume:/app/staticfiles
