@@ -91,9 +91,11 @@ jobs:
         echo "🔍 Debug: Checking if test_settings_override.py exists:"
         ls -la tanna_backend/test_settings_override.py || echo "❌ test_settings_override.py not found!"
         echo "🔍 Debug: Django settings check:"
-        python -c "import os; print('DJANGO_SETTINGS_MODULE:', os.environ.get('DJANGO_SETTINGS_MODULE', 'Not set'))"
-        echo "🔍 Debug: Running migrations with test_settings_override..."
-        python manage.py migrate --verbosity=1 --settings=tanna_backend.test_settings_override
+        python -c "import os; print('DJANGO_SETTINGS_MODULE:', repr(os.environ.get('DJANGO_SETTINGS_MODULE', 'Not set')))"
+        echo "🔍 Debug: Unsetting DJANGO_SETTINGS_MODULE to prevent override:"
+        export DJANGO_SETTINGS_MODULE=""
+        echo "🔍 Debug: Running migrations with ci_test_settings (ultra-minimal)..."
+        python manage.py migrate --verbosity=1 --settings=tanna_backend.ci_test_settings
 
     - name: Run Python tests
       run: |
@@ -103,8 +105,14 @@ jobs:
         ls -la tanna_backend/test_settings_override.py
         echo "🔍 Debug: Testing settings import:"
         python -c "from tanna_backend.test_settings_override import SECRET_KEY; print('✅ Settings import successful, SECRET_KEY:', SECRET_KEY)"
-        echo "🔍 Debug: Running tests..."
-        python manage.py test --verbosity=1 --keepdb --failfast --settings=tanna_backend.test_settings_override
+        echo "🔍 Debug: Testing ci_test_settings import:"
+        python -c "from tanna_backend.ci_test_settings import SECRET_KEY; print('✅ CI settings import successful, SECRET_KEY:', SECRET_KEY)"
+        echo "🔍 Debug: Checking DJANGO_SETTINGS_MODULE environment variable:"
+        python -c "import os; print('DJANGO_SETTINGS_MODULE:', repr(os.environ.get('DJANGO_SETTINGS_MODULE', 'Not set')))"
+        echo "🔍 Debug: Unsetting DJANGO_SETTINGS_MODULE to prevent override:"
+        export DJANGO_SETTINGS_MODULE=""
+        echo "🔍 Debug: Running tests with ci_test_settings (ultra-minimal)..."
+        python manage.py test --verbosity=1 --keepdb --failfast --settings=tanna_backend.ci_test_settings
     
     - name: Run Frontend tests
       run: |
