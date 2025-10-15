@@ -6,6 +6,20 @@ import os
 DEBUG = True
 SECRET_KEY = 'test-secret-key-for-github-actions'
 
+# Completely disable Firebase for tests by overriding the initialization
+FIREBASE_CREDENTIALS_PATH = None
+FIREBASE_PRIVATE_KEY = None
+FIREBASE_CLIENT_EMAIL = None
+FIREBASE_PROJECT_ID = None
+FIREBASE_PRIVATE_KEY_ID = None
+FIREBASE_CLIENT_ID = None
+FIREBASE_CLIENT_X509_CERT_URL = None
+
+# Disable Firebase Admin SDK initialization completely
+import sys
+if 'firebase_admin' in sys.modules:
+    del sys.modules['firebase_admin']
+
 # Use PostgreSQL for tests (same as production)
 # Database configuration will come from environment variables
 # This ensures we test with the same database type as production
@@ -24,11 +38,7 @@ LOGGING = {
     },
 }
 
-# Disable Firebase for tests
-FIREBASE_CREDENTIALS_PATH = None
-FIREBASE_PRIVATE_KEY = None
-FIREBASE_CLIENT_EMAIL = None
-FIREBASE_PROJECT_ID = None
+# Firebase already disabled above
 
 # Disable Celery for tests
 CELERY_TASK_ALWAYS_EAGER = True
