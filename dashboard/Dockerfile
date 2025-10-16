@@ -6,14 +6,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with increased memory
+RUN npm ci --maxsockets 1
 
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application with increased memory and timeout
+RUN NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
 # Production stage
 FROM nginx:alpine
