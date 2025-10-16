@@ -14,7 +14,7 @@ COPY . .
 
 # Build the application with minimal memory usage for low-resource servers
 # Using smaller memory allocation suitable for 1GB servers
-RUN NODE_OPTIONS="--max-old-space-size=1536 --optimize-for-size --gc-interval=100" npm run build
+RUN NODE_OPTIONS="--max-old-space-size=1536 --gc-interval=100" npm run build
 
 # Production stage
 FROM nginx:alpine
