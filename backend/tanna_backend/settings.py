@@ -343,11 +343,47 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
 # Flutterwave v4 Payment Settings
+# Import production-specific configuration
+try:
+    from .production_config import get_flutterwave_config, PRODUCTION_OVERRIDES
+    _has_production_config = True
+except ImportError:
+    _has_production_config = False
+
 # Environment Configuration
 FLUTTERWAVE_ENVIRONMENT = os.environ.get('FLUTTERWAVE_ENVIRONMENT', 'sandbox')  # 'sandbox' or 'production'
 
 # API Version Configuration - v4 uses date-based versioning
 FLUTTERWAVE_API_VERSION = os.environ.get('FLUTTERWAVE_API_VERSION', '2024-01-01')  # v4 API version
+
+# Apply production overrides if available and in production
+if _has_production_config and FLUTTERWAVE_ENVIRONMENT == 'production':
+    for key, value in PRODUCTION_OVERRIDES.items():
+        if key == 'FLUTTERWAVE_ENVIRONMENT':
+            FLUTTERWAVE_ENVIRONMENT = value
+        elif key == 'FLUTTERWAVE_API_VERSION':
+            FLUTTERWAVE_API_VERSION = value
+        elif key == 'DEFAULT_PAYMENT_CURRENCY':
+            DEFAULT_PAYMENT_CURRENCY = value
+        elif key == 'DEFAULT_PAYMENT_COUNTRY':
+            DEFAULT_PAYMENT_COUNTRY = value
+        elif key == 'DEFAULT_PAYMENT_OPTIONS':
+            DEFAULT_PAYMENT_OPTIONS = value
+        elif key == 'DEFAULT_REDIRECT_URL':
+            DEFAULT_REDIRECT_URL = value
+
+# Get Flutterwave configuration based on environment and API version
+if _has_production_config:
+    _flw_config = get_flutterwave_config(FLUTTERWAVE_ENVIRONMENT, FLUTTERWAVE_API_VERSION)
+    FLUTTERWAVE_BASE_URL = _flw_config['base_url']
+    FLUTTERWAVE_OAUTH_TOKEN_URL = _flw_config.get('oauth_token_url', 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token')
+else:
+    # Fallback to environment variables or defaults (using official v4 URLs)
+    FLUTTERWAVE_SANDBOX_URL = 'https://developersandbox-api.flutterwave.com'
+    FLUTTERWAVE_PRODUCTION_URL = 'https://f4bexperience.flutterwave.com'
+    FLUTTERWAVE_BASE_URL = os.environ.get('FLUTTERWAVE_BASE_URL',
+                                         FLUTTERWAVE_PRODUCTION_URL if FLUTTERWAVE_ENVIRONMENT == 'production' else FLUTTERWAVE_SANDBOX_URL)
+    FLUTTERWAVE_OAUTH_TOKEN_URL = 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token'
 
 # OAuth 2.0 Credentials (v4 Required)
 FLW_CLIENT_ID = os.environ.get('FLW_CLIENT_ID', '8e7eff59-be32-4697-8bb0-acc5e075d9e2')
@@ -359,18 +395,15 @@ FLUTTERWAVE_PUBLIC_KEY = os.environ.get('FLUTTERWAVE_PUBLIC_KEY', 'FLWPUBK_TEST-
 FLUTTERWAVE_ENCRYPTION_KEY = os.environ.get('FLUTTERWAVE_ENCRYPTION_KEY', 'PbklZgsEgpznG61MgU+CBF3VMwINCKTh2MIU996U7zM=')
 FLUTTERWAVE_SECRET_HASH = os.environ.get('FLUTTERWAVE_SECRET_HASH', '')
 
-# Flutterwave v4 API URLs (Official)
-FLUTTERWAVE_SANDBOX_URL = 'https://developersandbox-api.flutterwave.com'
-FLUTTERWAVE_PRODUCTION_URL = 'https://api.flutterwave.com'
-FLUTTERWAVE_BASE_URL = os.environ.get('FLUTTERWAVE_BASE_URL', FLUTTERWAVE_SANDBOX_URL)
-
-# OAuth 2.0 Token Endpoint
-FLUTTERWAVE_OAUTH_TOKEN_URL = 'https://auth.flutterwave.com/oauth/token'
-
-# Default Payment Settings
-DEFAULT_PAYMENT_CURRENCY = os.environ.get('DEFAULT_PAYMENT_CURRENCY', 'UGX')
-DEFAULT_PAYMENT_COUNTRY = os.environ.get('DEFAULT_PAYMENT_COUNTRY', 'UG')
-DEFAULT_PAYMENT_OPTIONS = os.environ.get('DEFAULT_PAYMENT_OPTIONS', 'card,mobile_money,mpesa,bank transfer')
+# Default Payment Settings (can be overridden by production config)
+if 'DEFAULT_PAYMENT_CURRENCY' not in locals():
+    DEFAULT_PAYMENT_CURRENCY = os.environ.get('DEFAULT_PAYMENT_CURRENCY', 'UGX')
+if 'DEFAULT_PAYMENT_COUNTRY' not in locals():
+    DEFAULT_PAYMENT_COUNTRY = os.environ.get('DEFAULT_PAYMENT_COUNTRY', 'UG')
+if 'DEFAULT_PAYMENT_OPTIONS' not in locals():
+    DEFAULT_PAYMENT_OPTIONS = os.environ.get('DEFAULT_PAYMENT_OPTIONS', 'card,mobile_money,mpesa,bank transfer')
+if 'DEFAULT_REDIRECT_URL' not in locals():
+    DEFAULT_REDIRECT_URL = os.environ.get('DEFAULT_REDIRECT_URL', 'https://bottleplugug.com/payment/return')
 DEFAULT_REDIRECT_URL = os.environ.get('DEFAULT_REDIRECT_URL', 'boozenation://return')
 
 # Site configuration for payments

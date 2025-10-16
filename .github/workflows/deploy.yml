@@ -201,7 +201,20 @@ jobs:
           # Collect static files
           echo "📁 Collecting static files..."
           docker-compose -f docker-compose.prod.yml --env-file .env.prod exec -T backend python manage.py collectstatic --noinput
-          
+
+          # Fix Flutterwave production configuration
+          echo "🔧 Applying Flutterwave production configuration fix..."
+          if [ -f "scripts/fix_production_flutterwave.sh" ]; then
+            chmod +x scripts/fix_production_flutterwave.sh
+            ./scripts/fix_production_flutterwave.sh
+          else
+            echo "⚠️ Flutterwave fix script not found, applying manual fix..."
+            # Manual fix as fallback (using official v4 URL)
+            sed -i 's|FLUTTERWAVE_BASE_URL=.*|FLUTTERWAVE_BASE_URL=https://f4bexperience.flutterwave.com|' .env.prod
+            sed -i 's|FLUTTERWAVE_ENVIRONMENT=.*|FLUTTERWAVE_ENVIRONMENT=production|' .env.prod
+            echo "✅ Manual Flutterwave configuration applied"
+          fi
+
           # Restart services to ensure everything is working
           echo "🔄 Restarting services..."
           docker-compose -f docker-compose.prod.yml --env-file .env.prod restart

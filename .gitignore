@@ -6,6 +6,11 @@
 .env.development
 .env.test
 
+# IMPORTANT: Always include production configuration files
+# These files contain critical production settings that must be version controlled
+# !backend/tanna_backend/production_config.py
+# !scripts/fix_production_flutterwave.sh
+
 # Firebase service account files (keep secure)
 backend/firebase/*.json
 firebase/*.json
