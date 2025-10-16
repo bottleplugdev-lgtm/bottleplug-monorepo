@@ -351,7 +351,7 @@ except ImportError:
     _has_production_config = False
 
 # Environment Configuration
-FLUTTERWAVE_ENVIRONMENT = os.environ.get('FLUTTERWAVE_ENVIRONMENT', 'sandbox')  # 'sandbox' or 'production'
+FLUTTERWAVE_ENVIRONMENT = os.environ.get('FLUTTERWAVE_ENVIRONMENT', 'production')  # 'sandbox' or 'production'
 
 # API Version Configuration - v4 uses date-based versioning
 FLUTTERWAVE_API_VERSION = os.environ.get('FLUTTERWAVE_API_VERSION', '2024-01-01')  # v4 API version
@@ -384,6 +384,10 @@ else:
     FLUTTERWAVE_BASE_URL = os.environ.get('FLUTTERWAVE_BASE_URL',
                                          FLUTTERWAVE_PRODUCTION_URL if FLUTTERWAVE_ENVIRONMENT == 'production' else FLUTTERWAVE_SANDBOX_URL)
     FLUTTERWAVE_OAUTH_TOKEN_URL = 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token'
+
+# Override with environment variables if provided (highest priority)
+FLUTTERWAVE_BASE_URL = os.environ.get('FLUTTERWAVE_BASE_URL', FLUTTERWAVE_BASE_URL)
+FLUTTERWAVE_OAUTH_TOKEN_URL = os.environ.get('FLUTTERWAVE_OAUTH_TOKEN_URL', FLUTTERWAVE_OAUTH_TOKEN_URL)
 
 # OAuth 2.0 Credentials (v4 Required)
 FLW_CLIENT_ID = os.environ.get('FLW_CLIENT_ID', '8e7eff59-be32-4697-8bb0-acc5e075d9e2')
