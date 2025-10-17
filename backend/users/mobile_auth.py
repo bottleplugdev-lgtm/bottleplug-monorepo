@@ -199,6 +199,14 @@ class MobileFirebaseAuthentication(authentication.BaseAuthentication):
                 is_mobile_user=True,  # Flag as mobile user
                 user_type='customer',  # Default to customer
                 is_active=True,
+                is_staff=False,  # Not staff by default
+                is_superuser=False,  # Not superuser by default
+                is_available=False,  # Not available by default
+                current_status='active',  # Default status
+                saved_addresses='{}',  # Empty JSON object
+                wallet_balance=0,  # Zero balance
+                platform=platform,  # Mobile platform
+                total_deliveries=0,  # Zero deliveries
             )
             
             logger.info(f"[MOBILE] New mobile user created successfully: {user.username} (ID: {user.id})")

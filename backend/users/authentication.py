@@ -137,6 +137,16 @@ class FirebaseAuthentication(authentication.BaseAuthentication):
             last_name=last_name_parts[0] if last_name_parts else '',
             profile_image=picture,
             is_verified=True,  # Firebase users are verified
+            user_type='customer',  # Default user type
+            is_active=True,  # Active user
+            is_staff=False,  # Not staff by default
+            is_superuser=False,  # Not superuser by default
+            is_available=False,  # Not available by default
+            current_status='active',  # Default status
+            saved_addresses='{}',  # Empty JSON object
+            wallet_balance=0,  # Zero balance
+            platform='web',  # Web platform
+            total_deliveries=0,  # Zero deliveries
         )
         
         return user, True 
