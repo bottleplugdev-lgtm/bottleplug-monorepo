@@ -32,7 +32,7 @@ class FlutterwaveAuthManager:
                 return False
 
             # Use official v4 OAuth endpoint
-            url = getattr(settings, 'FLUTTERWAVE_OAUTH_TOKEN_URL', 'https://auth.flutterwave.com/oauth/token')
+            url = getattr(settings, 'FLUTTERWAVE_OAUTH_TOKEN_URL', 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token')
 
             headers = {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -42,8 +42,8 @@ class FlutterwaveAuthManager:
             data = {
                 'client_id': self.client_id,
                 'client_secret': self.client_secret,
-                'grant_type': 'client_credentials',
-                'scope': 'payments'  # v4 requires scope specification
+                'grant_type': 'client_credentials'
+                # Note: Scope removed as 'payments' is not valid for Flutterwave v4
             }
 
             response = requests.post(url, headers=headers, data=data, timeout=30)
@@ -103,33 +103,35 @@ class FlutterwaveAuthManager:
     def generate_idempotency_key(self):
         """
         Generate a unique idempotency key for API requests
-        Following Flutterwave best practices using UUID
+        Following Flutterwave v4 API requirements: alphanumeric ASCII characters only, 12-255 chars
         """
         import uuid
-        
-        # Use UUID as recommended by Flutterwave for uniqueness
-        return str(uuid.uuid4())
+
+        # Use UUID without hyphens to meet alphanumeric requirement
+        return str(uuid.uuid4()).replace('-', '')
     
     def generate_idempotency_key_with_prefix(self, prefix='flw'):
         """
         Generate a unique idempotency key with custom prefix
+        Following Flutterwave v4 API requirements: alphanumeric ASCII characters only, 12-255 chars
         """
         import uuid
         import time
-        
-        # Create a unique key using timestamp and UUID
+
+        # Create a unique key using timestamp and UUID (alphanumeric only)
         timestamp = int(time.time() * 1000)
         unique_id = str(uuid.uuid4()).replace('-', '')[:16]
-        return f"{prefix}_{timestamp}_{unique_id}"
+        return f"{prefix}{timestamp}{unique_id}"
     
     def generate_trace_id(self):
         """
         Generate a unique trace ID for API request tracking
+        Following Flutterwave v4 API requirements: alphanumeric ASCII characters only, 12-255 chars
         """
         import uuid
-        
-        # Create a unique trace ID
-        return f"trace_{str(uuid.uuid4()).replace('-', '')}"
+
+        # Create a unique trace ID with alphanumeric characters only
+        return f"trace{str(uuid.uuid4()).replace('-', '')}"
     
     def get_v4_headers(self, include_idempotency=True, include_trace=True, scenario_key=None, custom_idempotency_key=None):
         """

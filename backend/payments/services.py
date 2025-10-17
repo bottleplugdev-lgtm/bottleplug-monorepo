@@ -41,8 +41,17 @@ class FlutterwaveService:
         from .error_handling import FlutterwaveErrorHandler
         self.error_handler = FlutterwaveErrorHandler()
         
-        # Get base URL from version manager
-        self.base_url = self.version_manager.get_compatible_url('', self.environment)
+        # Get base URL - prioritize Django settings, fallback to version manager
+        django_base_url = getattr(settings, 'FLUTTERWAVE_BASE_URL', None)
+        logger.info(f"Django base URL: {django_base_url}")
+        if django_base_url and django_base_url != 'https://api.flutterwave.com':
+            # Use Django settings if available and not the old default
+            self.base_url = django_base_url
+            logger.info(f"Using Django settings URL: {self.base_url}")
+        else:
+            # Fallback to version manager
+            self.base_url = self.version_manager.get_compatible_url('', self.environment)
+            logger.info(f"Using version manager URL: {self.base_url}")
         
         # Default settings
         self.default_currency = getattr(settings, 'DEFAULT_PAYMENT_CURRENCY', 'UGX')

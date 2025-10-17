@@ -22,9 +22,9 @@ class FlutterwaveAPIVersion:
             'description': 'Latest API version with OAuth 2.0 and enhanced features',
             'base_urls': {
                 'sandbox': 'https://developersandbox-api.flutterwave.com',
-                'production': 'https://api.flutterwave.com'
+                'production': 'https://f4bexperience.flutterwave.com'
             },
-            'oauth_token_url': 'https://auth.flutterwave.com/oauth/token',
+            'oauth_token_url': 'https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token',
             'features': [
                 'OAuth 2.0 authentication (required)',
                 'Scenario-based testing with X-Scenario-Key',

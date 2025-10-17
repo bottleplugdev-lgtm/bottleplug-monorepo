@@ -324,7 +324,7 @@ async function checkout_and_pay() {
 				}
 			},
 			mobile_money_data: {
-				country_code: '256', // Uganda
+				country_code: 'UGX', // Uganda currency code
 				network: mm_network.value,
 				phone_number: mm_phone.value.replace(/^\+?256/, '') // Remove country code prefix
 			},

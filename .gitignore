@@ -4,6 +4,7 @@
 .env.production
 .env.prod
 .env.development
+.env.dev
 .env.test
 
 # IMPORTANT: Always include production configuration files

@@ -41,6 +41,12 @@ services:
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       - ALLOWED_HOSTS=*
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8080,http://ecommerce-web,http://dashboard
+      # Flutterwave Configuration (Development/Sandbox)
+      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
+      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
+      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
       - media_files:/app/media
@@ -68,6 +74,12 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
+      # Flutterwave Configuration (Development/Sandbox)
+      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
+      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
+      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
     depends_on:
@@ -85,6 +97,12 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
+      # Flutterwave Configuration (Development/Sandbox)
+      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
+      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
+      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
     depends_on:

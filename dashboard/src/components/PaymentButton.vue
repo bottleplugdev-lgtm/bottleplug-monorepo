@@ -623,12 +623,12 @@ const initiatePaymentAction = async () => {
               last: 'User'
             },
             phone: {
-              country_code: '256',
+              country_code: '256', // Keep numeric for customer phone format
               number: paymentDetails.value.phone_number
             }
           },
           mobile_money_data: {
-            country_code: '256',
+            country_code: 'UGX', // Uganda currency code
             network: paymentDetails.value.network,
             phone_number: paymentDetails.value.phone_number
           },
