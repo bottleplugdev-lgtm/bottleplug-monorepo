@@ -36,7 +36,7 @@ services:
     container_name: bottleplug-backend
     environment:
       - DEBUG=True
-      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - DATABASE_URL=postgresql://bottleplug:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       - ALLOWED_HOSTS=*
@@ -73,7 +73,7 @@ services:
     command: celery -A tanna_backend worker -l info
     environment:
       - DEBUG=True
-      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - DATABASE_URL=postgresql://bottleplug:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       # Flutterwave Configuration (Development/Sandbox)
@@ -97,7 +97,7 @@ services:
     command: celery -A tanna_backend beat -l info
     environment:
       - DEBUG=True
-      - DATABASE_URL=postgresql://postgres:postgres123@db:5432/bottleplug
+      - DATABASE_URL=postgresql://bottleplug:postgres123@db:5432/bottleplug
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       # Flutterwave Configuration (Development/Sandbox)
