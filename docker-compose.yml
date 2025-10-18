@@ -133,8 +133,8 @@ services:
     build:
       context: ./dashboard
       args:
-        VITE_API_BASE_URL: http://backend:8000/api/v1
-        VITE_APP_ENVIRONMENT: development
+        VITE_API_BASE_URL: https://api.bottleplugug.com/api/v1
+        VITE_APP_ENVIRONMENT: production
     container_name: bottleplug-dashboard
     ports:
       - "3001:80"

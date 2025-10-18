@@ -67,8 +67,20 @@ const resolveApiBaseUrl = () => {
 
 // Environment-based API configuration
 const getApiBaseUrl = () => {
-  // For local development with Docker, use localhost since browser can't resolve container names
-  // The browser needs to access the backend via localhost:8000 (mapped port)
+  // Use the environment variable set during build time
+  const envUrl = import.meta.env.VITE_API_BASE_URL
+  
+  if (envUrl) {
+    return envUrl
+  }
+  
+  // Fallback based on current hostname
+  if (window.location.hostname === 'admin.bottleplugug.com' || 
+      window.location.hostname === 'bottleplugug.com') {
+    return 'https://api.bottleplugug.com/api/v1'
+  }
+  
+  // Default to localhost for development
   return 'http://localhost:8000/api/v1'
 }
 
