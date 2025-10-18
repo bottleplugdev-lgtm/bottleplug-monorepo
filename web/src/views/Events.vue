@@ -424,7 +424,7 @@ async function process_event_payment() {
 			mobile_money_data: {
 				country_code: 'UGX', // Uganda currency code
 				network: mm_network.value,
-				phone_number: mm_phone.value.replace(/^\+?256/, '') // Remove country code prefix
+				phone_number: mm_phone.value.startsWith('+') ? mm_phone.value : `+256${mm_phone.value}` // Ensure country code prefix
 			},
 			charge_data: {
 				amount: Math.round(Number(selected_event.value.total_amount)), // Round off to integer

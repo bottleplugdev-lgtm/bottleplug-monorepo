@@ -302,7 +302,7 @@ async function checkout_and_pay() {
 			delivery_instructions: delivery_option.value === 'express' ? 'Express delivery requested' : 'Standard delivery',
 			delivery_fee: delivery_fee.value,
 			notes: coupon.value ? `Coupon applied: ${coupon.value}` : '',
-			customer_phone: mm_phone.value.replace(/^\+?256/, '') // Add phone number to order data
+			customer_phone: mm_phone.value.startsWith('+') ? mm_phone.value : `+256${mm_phone.value}` // Add phone number to order data
 		}
 		
 		const order = await cart.checkout(order_data)
@@ -326,7 +326,7 @@ async function checkout_and_pay() {
 			mobile_money_data: {
 				country_code: 'UGX', // Uganda currency code
 				network: mm_network.value,
-				phone_number: mm_phone.value.replace(/^\+?256/, '') // Remove country code prefix
+				phone_number: mm_phone.value.startsWith('+') ? mm_phone.value : `+256${mm_phone.value}` // Ensure country code prefix
 			},
 			charge_data: {
 				amount: amount,
