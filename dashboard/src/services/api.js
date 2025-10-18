@@ -20,10 +20,15 @@ const resolveApiBaseUrl = () => {
   const { environment, isDevelopment, isProduction, isDebug } = getEnvironment()
   let base = (import.meta.env && import.meta.env.VITE_API_BASE_URL) || ''
 
+  // Force local backend URL for development
+  if (isDevelopment || environment === 'development') {
+    return 'http://localhost:8000/api/v1'
+  }
+
   // Default URLs based on environment
   const defaultProdBase = 'https://api.bottleplugug.com/api/v1'
   const defaultDevBase = 'http://localhost:8000/api/v1'
-  const defaultBase = isProduction ? defaultProdBase : defaultDevBase
+  const defaultBase = 'https://api.bottleplugug.com/api/v1' // Production backend for production
 
   try {
     if (!base) return defaultBase
@@ -60,7 +65,14 @@ const resolveApiBaseUrl = () => {
   }
 }
 
-const API_BASE_URL = resolveApiBaseUrl()
+// Environment-based API configuration
+const getApiBaseUrl = () => {
+  // For local development with Docker, use localhost since browser can't resolve container names
+  // The browser needs to access the backend via localhost:8000 (mapped port)
+  return 'http://localhost:8000/api/v1'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 const ENV_CONFIG = getEnvironment()
 
 // Get device info for API calls
@@ -83,8 +95,9 @@ const generateDeviceId = () => {
   return deviceId
 }
 
-// Get Firebase ID token or fallback to stored backend access token
+// Get authentication token for API calls
 const getAuthToken = async () => {
+  // Use Firebase token for API calls since backend expects Firebase JWT tokens
   try {
     const user = auth.currentUser
     if (user) {
@@ -93,9 +106,11 @@ const getAuthToken = async () => {
   } catch (error) {
     console.error('Error getting Firebase ID token:', error)
   }
-  // Fallback to backend JWT if available
+  
+  // Fallback to backend token if Firebase token not available
   const backendToken = localStorage.getItem('access_token')
   if (backendToken) return backendToken
+  
   throw new Error('No authenticated user')
 }
 

@@ -7,7 +7,11 @@ class WebSocketService {
   }
 
   connect(token) {
-    const wsUrl = `wss://api.bottleplugug.com/ws/notifications/?token=${token}`;
+    // Use production WebSocket URL for production environment
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const wsUrl = isDevelopment 
+      ? `ws://localhost:8000/ws/notifications/?token=${token}`
+      : `wss://api.bottleplugug.com/ws/notifications/?token=${token}`;
     
     this.socket = new WebSocket(wsUrl);
     

@@ -486,7 +486,7 @@ import {
 const loading = ref(false)
 const activeTab = ref('profile')
 const authStore = useAuthStore()
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.bottleplugug.com/api/v1'
+const API_BASE_URL = ApiService.baseUrl
 const BACKEND_ORIGIN = API_BASE_URL.replace(/\/api\/v1\/?$/, '')
 const buildMediaUrl = (path) => {
   if (!path) return ''

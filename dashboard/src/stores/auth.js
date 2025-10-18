@@ -85,14 +85,8 @@ export const useAuthStore = defineStore('auth', () => {
             displayName: existingSession.email
           }
           
-          try {
-            await refreshProfile()
-            console.log('Profile refreshed successfully') // eslint-disable-line no-console, no-undef
-          } catch (profileError) {
-            console.warn('Could not refresh profile on restore:', profileError) // eslint-disable-line no-console, no-undef
-          }
-          
-          loading.value = false
+          // Don't refresh profile immediately - wait for Firebase auth state to be established
+          // The profile will be refreshed when Firebase auth state changes
           console.log('Session restored successfully for:', existingSession.email) // eslint-disable-line no-console, no-undef
         } else {
           console.log('Session tokens are invalid, clearing...') // eslint-disable-line no-console, no-undef
@@ -117,6 +111,15 @@ export const useAuthStore = defineStore('auth', () => {
             try {
               await verifyWithBackend(firebaseUser)
               console.log('Backend verification successful for:', firebaseUser.email) // eslint-disable-line no-console, no-undef
+              
+              // Now that we have backend token, refresh the user profile
+              try {
+                await refreshProfile()
+                console.log('User profile refreshed successfully') // eslint-disable-line no-console, no-undef
+              } catch (profileError) {
+                console.warn('Could not refresh profile after backend verification:', profileError) // eslint-disable-line no-console, no-undef
+              }
+              
               // Store session in localStorage for persistence
               localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
                 uid: firebaseUser.uid,
@@ -130,10 +133,19 @@ export const useAuthStore = defineStore('auth', () => {
               
               // Retry once after a short delay
               console.log('Retrying backend verification in 2 seconds...') // eslint-disable-line no-console, no-undef
-              setTimeout(async () => {
+              setTimeout(async () => { // eslint-disable-line no-undef
                 try {
                   await verifyWithBackend(firebaseUser)
                   console.log('Backend verification successful on retry') // eslint-disable-line no-console, no-undef
+                  
+                  // Now that we have backend token, refresh the user profile
+                  try {
+                    await refreshProfile()
+                    console.log('User profile refreshed successfully on retry') // eslint-disable-line no-console, no-undef
+                  } catch (profileError) {
+                    console.warn('Could not refresh profile after retry:', profileError) // eslint-disable-line no-console, no-undef
+                  }
+                  
                   localStorage.setItem('bottleplug_session', JSON.stringify({ // eslint-disable-line no-undef
                     uid: firebaseUser.uid,
                     email: firebaseUser.email,
@@ -143,7 +155,7 @@ export const useAuthStore = defineStore('auth', () => {
                   console.error('Backend verification failed after retry:', retryError) // eslint-disable-line no-console, no-undef
                   // Do not force logout here; keep Firebase session to avoid unintended sign-out on navigation
                   // Show a gentle warning to the user
-                  try { toast.warn('Connected, but failed to sync with server. Some features may be limited.') } catch (_) {}
+                  try { toast.warn('Connected, but failed to sync with server. Some features may be limited.') } catch (_) { /* ignore toast errors */ }
                 }
               }, 2000)
             }
@@ -177,7 +189,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const idToken = await firebaseUser.getIdToken()
       
-      const response = await fetch(`${ApiService.baseUrl}/auth/login/`, {
+      const response = await fetch(`${ApiService.baseUrl}/auth/login/`, { // eslint-disable-line no-undef
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +333,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
       let errorMessage = 'Sign in failed. Please try again.'
-      try { toast.error(errorMessage) } catch (_) {}
+      try { toast.error(errorMessage) } catch (_) {/* ignore toast errors */ }
       throw error
     } finally {
       loading.value = false
@@ -406,7 +418,7 @@ export const useAuthStore = defineStore('auth', () => {
             errorMessage = 'Too many attempts. Please wait a moment and try again.'
             break
         }
-        try { toast.error(errorMessage) } catch (_) {}
+        try { toast.error(errorMessage) } catch (_) {/* ignore toast errors */ }
       }
       // Do not rethrow to avoid noisy errors on UI
       return { user: null, success: false }
@@ -490,14 +502,16 @@ export const useAuthStore = defineStore('auth', () => {
   // Update user profile
   const updateProfile = async (profileData) => {
     try {
-      if (!accessToken.value) {
-        throw new Error('No access token available')
+      // Use Firebase token for API calls since backend expects Firebase JWT tokens
+      const firebaseToken = await auth.currentUser?.getIdToken()
+      if (!firebaseToken) {
+        throw new Error('No Firebase token available')
       }
 
       const response = await fetch(`${ApiService.baseUrl}/auth/users/update_profile/`, { // eslint-disable-line no-undef
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${accessToken.value}`,
+          'Authorization': `Bearer ${firebaseToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(profileData),
@@ -525,13 +539,15 @@ export const useAuthStore = defineStore('auth', () => {
   // Get fresh user profile from backend
   const refreshProfile = async () => {
     try {
-      if (!accessToken.value) {
-        throw new Error('No access token available')
+      // Use Firebase token for API calls since backend expects Firebase JWT tokens
+      const firebaseToken = await auth.currentUser?.getIdToken()
+      if (!firebaseToken) {
+        throw new Error('No Firebase token available')
       }
 
       const response = await fetch(`${ApiService.baseUrl}/auth/users/profile/`, { // eslint-disable-line no-undef
         headers: {
-          'Authorization': `Bearer ${accessToken.value}`,
+          'Authorization': `Bearer ${firebaseToken}`,
         },
       })
 

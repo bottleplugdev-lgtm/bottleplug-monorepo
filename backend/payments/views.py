@@ -33,7 +33,7 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
     """
     queryset = PaymentMethod.objects.filter(is_active=True)
     serializer_class = PaymentMethodSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow access without authentication for basic payment methods
     authentication_classes = [
         FirebaseAuthentication,
         SessionAuthentication,

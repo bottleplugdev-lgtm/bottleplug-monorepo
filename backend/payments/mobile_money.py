@@ -149,19 +149,26 @@ class FlutterwaveMobileMoney:
         Returns:
             str: Formatted phone number without country code (e.g., '700000000')
         """
+        # For Flutterwave v4, remove country code and add leading zero for Uganda
         if phone_number.startswith('+'):
-            # Remove + and find where country code ends
-            number = phone_number[1:]
-
-            # Try to match against known country codes
+            number = phone_number[1:]  # Remove +
+            
+            # Try to match against known country codes and remove them
             for currency_info in self.SUPPORTED_COUNTRIES.values():
                 for country_code in currency_info.get('country_codes', []):
                     if number.startswith(country_code):
-                        # Return number without country code
-                        return number[len(country_code):]
-
-        # If no country code found, return as is (remove + if present)
-        return phone_number.lstrip('+')
+                        # Remove country code and add leading zero for Uganda numbers
+                        local_number = number[len(country_code):]
+                        # Add leading zero if it's a Uganda number and doesn't already have one
+                        if country_code == '256' and not local_number.startswith('0'):
+                            return '0' + local_number
+                        return local_number
+            
+            # If no country code match found, return as is
+            return number
+        
+        # If no + prefix, assume it's already formatted
+        return phone_number
 
     def validate_mobile_money_data(self, mobile_money_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -405,7 +412,7 @@ class FlutterwaveMobileMoney:
                 'type': 'mobile_money',
                 'mobile_money': {
                     'country_code': numeric_country_code,  # Use numeric country code
-                    'network': mobile_money_data['network'],
+                    'network': mobile_money_data['network'].upper(),  # Ensure uppercase
                     'phone_number': formatted_phone  # Use formatted phone number
                 },
                 'currency': currency  # Add currency to payment method
@@ -493,7 +500,7 @@ class FlutterwaveMobileMoney:
 
             payload = {
                 'reference': reference,
-                'amount': str(charge_data['amount']),
+                'amount': float(charge_data['amount']),  # Use float instead of string
                 'currency': charge_data['currency'],
                 'customer': {
                     'email': customer_data['email'],
@@ -729,13 +736,17 @@ class FlutterwaveMobileMoney:
 
             payload = {
                 'reference': reference,
-                'amount': str(charge_data['amount']),
+                'amount': float(charge_data['amount']),  # Use float instead of string
                 'currency': charge_data['currency'],
                 'customer_id': customer_id,
                 'payment_method_id': payment_method_id,
                 'redirect_url': charge_data.get('redirect_url', 'https://api.bottleplugug.com/payments/success/'),
                 'meta': charge_data.get('meta', {})
             }
+            
+            # Add order_id if provided (v4 API requirement)
+            if 'order_id' in charge_data:
+                payload['order_id'] = charge_data['order_id']
 
             # Add description if provided
             if 'description' in charge_data:

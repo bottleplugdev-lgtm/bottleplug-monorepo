@@ -42,15 +42,17 @@ services:
       - ALLOWED_HOSTS=*
       - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:8080,http://ecommerce-web,http://dashboard
       # Flutterwave Configuration (Development/Sandbox)
-      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
-      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
-      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
-      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLW_CLIENT_ID=Bfeee6a6-5d5d-4f22-a1a1-5d6dd33e4438
+      - FLW_CLIENT_SECRET=oyazc0vOGg4yXUrVLTFwUsfyjh4OHT0I
+      - FLUTTERWAVE_ENCRYPTION_KEY=RQ9nn7KwM1hb2TV0PlzKkKW3mFNMdH/0tQXZgEN+6AE=
+      - FLUTTERWAVE_ENVIRONMENT=production
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://f4bexperience.flutterwave.com}
       - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
       - media_files:/app/media
       - static_files:/app/staticfiles
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
     ports:
       - "8000:8000"
     depends_on:
@@ -75,10 +77,11 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       # Flutterwave Configuration (Development/Sandbox)
-      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
-      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
-      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
-      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLW_CLIENT_ID=Bfeee6a6-5d5d-4f22-a1a1-5d6dd33e4438
+      - FLW_CLIENT_SECRET=oyazc0vOGg4yXUrVLTFwUsfyjh4OHT0I
+      - FLUTTERWAVE_ENCRYPTION_KEY=RQ9nn7KwM1hb2TV0PlzKkKW3mFNMdH/0tQXZgEN+6AE=
+      - FLUTTERWAVE_ENVIRONMENT=production
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://f4bexperience.flutterwave.com}
       - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
@@ -98,10 +101,11 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=bottleplug-secret-key-change-in-production
       # Flutterwave Configuration (Development/Sandbox)
-      - FLW_CLIENT_ID=${FLW_CLIENT_ID:-your-sandbox-client-id}
-      - FLW_CLIENT_SECRET=${FLW_CLIENT_SECRET:-your-sandbox-client-secret}
-      - FLUTTERWAVE_ENCRYPTION_KEY=${FLUTTERWAVE_ENCRYPTION_KEY:-your-sandbox-encryption-key}
-      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://developersandbox-api.flutterwave.com}
+      - FLW_CLIENT_ID=Bfeee6a6-5d5d-4f22-a1a1-5d6dd33e4438
+      - FLW_CLIENT_SECRET=oyazc0vOGg4yXUrVLTFwUsfyjh4OHT0I
+      - FLUTTERWAVE_ENCRYPTION_KEY=RQ9nn7KwM1hb2TV0PlzKkKW3mFNMdH/0tQXZgEN+6AE=
+      - FLUTTERWAVE_ENVIRONMENT=production
+      - FLUTTERWAVE_BASE_URL=${FLUTTERWAVE_BASE_URL:-https://f4bexperience.flutterwave.com}
       - FLUTTERWAVE_OAUTH_TOKEN_URL=${FLUTTERWAVE_OAUTH_TOKEN_URL:-https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token}
     volumes:
       - ./backend:/app
@@ -126,7 +130,11 @@ services:
 
   # Bottleplug Admin Dashboard (Vue.js)
   dashboard:
-    build: ./dashboard
+    build:
+      context: ./dashboard
+      args:
+        VITE_API_BASE_URL: http://backend:8000/api/v1
+        VITE_APP_ENVIRONMENT: development
     container_name: bottleplug-dashboard
     ports:
       - "3001:80"

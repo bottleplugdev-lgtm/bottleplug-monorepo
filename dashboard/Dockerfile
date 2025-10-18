@@ -12,8 +12,12 @@ RUN npm ci --maxsockets 1 --prefer-offline --no-audit --no-fund
 # Copy source code
 COPY . .
 
-# Build the application with minimal memory usage for low-resource servers
+# Build the application with environment variables
 # Using smaller memory allocation suitable for 1GB servers
+ARG VITE_API_BASE_URL
+ARG VITE_APP_ENVIRONMENT
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_APP_ENVIRONMENT=$VITE_APP_ENVIRONMENT
 RUN NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
 # Production stage

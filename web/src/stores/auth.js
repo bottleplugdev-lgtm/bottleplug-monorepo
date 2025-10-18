@@ -151,8 +151,8 @@ export const use_auth_store = defineStore('auth_store', {
 			try {
 				await this.sign_out_anonymous_if_needed()
 				const auth = get_auth()
-				const provider = new GoogleAuthProvider()
-				await signInWithPopup(auth, provider)
+				const { googleProvider } = await import('../lib/firebase')
+				await signInWithPopup(auth, googleProvider)
 				
 				// Start user session after successful sign-in
 				this.start_user_session()

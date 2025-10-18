@@ -3,6 +3,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.authentication import SessionAuthentication
 from django.shortcuts import get_object_or_404
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -29,7 +30,10 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = [FirebaseAuthentication]
+    authentication_classes = [
+        FirebaseAuthentication,
+        SessionAuthentication,
+    ]
 
     @action(detail=False, methods=['get'])
     def profile(self, request):
@@ -224,16 +228,11 @@ class FirebaseLoginView(APIView):
             refresh_token = f"refresh_{user.id}_{int(time.time())}"
             session_id = f"session_{user.id}_{int(time.time())}"
             
+            # Use serializer to ensure consistent data structure
+            user_serializer = UserSerializer(user)
+            
             return Response({
-                'user': {
-                    'id': user.id,
-                    'email': user.email,
-                    'first_name': user.first_name,
-                    'last_name': user.last_name,
-                    'user_type': user.user_type,
-                    'is_staff': user.is_staff,
-                    'is_admin': user.is_admin_user,
-                },
+                'user': user_serializer.data,
                 'access_token': access_token,
                 'refresh_token': refresh_token,
                 'session_id': session_id,

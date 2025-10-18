@@ -173,9 +173,9 @@ async function sign_up_with_google() {
 		is_submitting.value = true
 		error_message.value = ''
 		
-		const provider = new GoogleAuthProvider()
+		const { googleProvider } = await import('../lib/firebase')
 		const auth_instance = get_auth_instance()
-		const result = await signInWithPopup(auth_instance, provider)
+		const result = await signInWithPopup(auth_instance, googleProvider)
 		
 		// Google sign-in automatically creates an account
 		toast_success('Account created successfully!')

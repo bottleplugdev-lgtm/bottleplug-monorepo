@@ -630,7 +630,7 @@ const initiatePaymentAction = async () => {
           mobile_money_data: {
             country_code: 'UGX', // Uganda currency code
             network: paymentDetails.value.network,
-            phone_number: paymentDetails.value.phone_number
+            phone_number: `+256${paymentDetails.value.phone_number}`
           },
           charge_data: {
             amount: editableAmount.value,
