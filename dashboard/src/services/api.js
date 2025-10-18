@@ -109,7 +109,11 @@ const generateDeviceId = () => {
 
 // Get authentication token for API calls
 const getAuthToken = async () => {
-  // Use Firebase token for API calls since backend expects Firebase JWT tokens
+  // Prioritize backend token for API calls since backend expects its own JWT tokens
+  const backendToken = localStorage.getItem('access_token')
+  if (backendToken) return backendToken
+  
+  // Fallback to Firebase token if backend token not available
   try {
     const user = auth.currentUser
     if (user) {
@@ -118,10 +122,6 @@ const getAuthToken = async () => {
   } catch (error) {
     console.error('Error getting Firebase ID token:', error)
   }
-  
-  // Fallback to backend token if Firebase token not available
-  const backendToken = localStorage.getItem('access_token')
-  if (backendToken) return backendToken
   
   throw new Error('No authenticated user')
 }
