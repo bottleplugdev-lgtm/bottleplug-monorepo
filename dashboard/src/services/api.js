@@ -26,9 +26,9 @@ const resolveApiBaseUrl = () => {
   }
 
   // Default URLs based on environment
-  const defaultProdBase = 'https://api.bottleplugug.com/api/v1'
+  const defaultProdBase = 'https://bottleplugug.com/api/v1'
   const defaultDevBase = 'http://localhost:8000/api/v1'
-  const defaultBase = 'https://api.bottleplugug.com/api/v1' // Production backend for production
+  const defaultBase = 'https://bottleplugug.com/api/v1' // Production backend for production
 
   try {
     if (!base) return defaultBase
